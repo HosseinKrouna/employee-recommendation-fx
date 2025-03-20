@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.PasswordField?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.VBox?>
+
+<VBox alignment="CENTER" spacing="10" xmlns="http://javafx.com/javafx/21"
+      xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.krouna.empfehlungsapp_javafx.controllers.EmployeeLoginController">
+
+    <Label text="Mitarbeiter Login" style="-fx-font-size: 18px; -fx-font-weight: bold;"/>
+    <TextField fx:id="usernameField" promptText="Benutzername"/>
+    <PasswordField fx:id="passwordField" promptText="Passwort"/>
+    <Button text="Anmelden" onAction="#handleEmployeeLogin"/>
+    <Button text="Zurück" onAction="#handleBack"/>
+</VBox>
