@@ -8,6 +8,7 @@ module com.krouna.empfehlungsapp_javafx {
     requires org.apache.httpcomponents.client5.httpclient5;
     requires com.fasterxml.jackson.databind;
     requires org.apache.httpcomponents.core5.httpcore5;
+    requires java.net.http;
 
     opens com.krouna.empfehlungsapp_javafx to javafx.fxml;
     exports com.krouna.empfehlungsapp_javafx;

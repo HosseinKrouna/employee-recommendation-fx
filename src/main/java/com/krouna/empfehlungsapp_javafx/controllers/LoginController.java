@@ -1,74 +1,77 @@
 package com.krouna.empfehlungsapp_javafx.controllers;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
-import javafx.scene.control. *;
+import javafx.scene.control.*;
 import javafx.stage.Stage;
-import org.apache.hc.client5.http.classic.methods.HttpPost;
-import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
-import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse;
-import org.apache.hc.client5.http.impl.classic.HttpClients;
-import org.apache.hc.core5.http.ContentType;
-import org.apache.hc.core5.http.io.entity.StringEntity;
-
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
 
 public class LoginController {
-
     @FXML
     private TextField usernameField;
     @FXML
     private PasswordField passwordField;
     @FXML
-    private Label errorLabel;
-
-    private static final String LOGIN_URL = "http://localhost:8080/api/auth/login"; // API-URL anpassen!
+    private ComboBox<String> roleSelection; // Auswahl für "Mitarbeiter" oder "HR"
 
     @FXML
-    private void handleLogin() {
+    private void initialize() {
+        roleSelection.getItems().addAll("Mitarbeiter", "HR");
+    }
+
+    @FXML
+    private void onLoginClick() {
         String username = usernameField.getText();
         String password = passwordField.getText();
+        String role = roleSelection.getValue();
 
-        if (authenticate(username, password)) {
-            loadDashboard();
+        if (role == null) {
+            showAlert("Fehler", "Bitte eine Rolle auswählen!");
+            return;
+        }
+
+        // Simpler Test-Login (später mit Datenbank verbinden)
+        if (isValidUser(username, password, role)) {
+            switchToDashboard(role);
         } else {
-            errorLabel.setText("Login fehlgeschlagen. Bitte überprüfe deine Daten.");
+            showAlert("Fehler", "Ungültige Anmeldeinformationen!");
         }
     }
 
-    private boolean authenticate(String username, String password) {
-        try (CloseableHttpClient client = HttpClients.createDefault()) {
-            HttpPost request = new HttpPost(LOGIN_URL);
-            request.setHeader("Content-Type", "application/json");
-
-            Map<String, String> credentials = new HashMap<>();
-            credentials.put("username", username);
-            credentials.put("password", password);
-
-            String json = new ObjectMapper().writeValueAsString(credentials);
-            request.setEntity(new StringEntity(json, ContentType.APPLICATION_JSON));
-
-            try (CloseableHttpResponse response = client.execute(request)) {
-                return response.getCode() == 200;
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-            return false;
-        }
-    }
-
-    private void loadDashboard() {
+    private void switchToDashboard(String role) {
         try {
+            FXMLLoader loader;
+            if (role.equals("Mitarbeiter")) {
+                loader = new FXMLLoader(getClass().getResource("/com/krouna/empfehlungsapp_javafx/employee-dashboard.fxml"));
+            } else {
+                loader = new FXMLLoader(getClass().getResource("/com/krouna/empfehlungsapp_javafx/hr-dashboard.fxml"));
+            }
+
             Stage stage = (Stage) usernameField.getScene().getWindow();
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/dashboard-login-view.fxml"));
-            Scene scene = new Scene(loader.load(), 600, 400);
-            stage.setScene(scene);
+            stage.setScene(new Scene(loader.load()));
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    private boolean isValidUser(String username, String password, String role) {
+        // Hier später Datenbank-Check mit Spring Boot einbauen
+        return username.equals("test") && password.equals("1234");
+    }
+
+    private void showAlert(String title, String message) {
+        Alert alert = new Alert(Alert.AlertType.ERROR);
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        alert.setContentText(message);
+        alert.showAndWait();
+    }
+
+    @FXML
+    private void onRegisterClick() throws IOException {
+        FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/com/krouna/empfehlungsapp_javafx/register-view.fxml"));
+        Stage stage = (Stage) usernameField.getScene().getWindow();
+        stage.setScene(new Scene(fxmlLoader.load()));
     }
 }

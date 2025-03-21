@@ -1,0 +1,9 @@
+<VBox spacing="10" alignment="CENTER" xmlns="http://javafx.com/javafx"
+      xmlns:fx="http://javafx.com/fxml"
+      fx:controller="com.krouna.empfehlungsapp_javafx.controllers.EmployeeRegisterController">
+    <Label text="Mitarbeiter-Registrierung"/>
+    <TextField fx:id="usernameField" promptText="Benutzername"/>
+    <PasswordField fx:id="passwordField" promptText="Passwort"/>
+    <Button text="Registrieren" onAction="#handleRegister"/>
+    <Button text="Zurück" onAction="#handleBack"/>
+</VBox>

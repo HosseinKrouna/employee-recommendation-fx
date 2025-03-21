@@ -8,7 +8,8 @@
       xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="com.krouna.empfehlungsapp_javafx.controllers.RoleSelectionController">
 
-    <Text text="Wählen Sie Ihre Rolle" style="-fx-font-size: 18px; -fx-font-weight: bold;"/>
+
+    <Text text="Wähle deine Rolle aus" style="-fx-font-size: 18px; -fx-font-weight: bold;"/>
 
     <Button text="Mitarbeiter-Login" onAction="#handleEmployeeLogin"/>
     <Button text="HR-Login" onAction="#handleHRLogin"/>
