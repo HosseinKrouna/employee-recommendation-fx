@@ -9,13 +9,71 @@ import javafx.scene.Scene;
 import javafx.stage.Stage;
 import java.io.IOException;
 
-public class HRDashboardController {
+import com.krouna.empfehlungsapp_javafx.dto.RecommendationDTO;
+import com.krouna.empfehlungsapp_javafx.services.BackendService;
+import javafx.collections.FXCollections;
+import javafx.fxml.FXML;
+import javafx.fxml.Initializable;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableView;
+import javafx.scene.control.cell.PropertyValueFactory;
+
+import java.io.IOException;
+import java.net.URL;
+import java.util.List;
+import java.util.ResourceBundle;
+
+public class HRDashboardController  implements Initializable{
+
+
+    @FXML
+    private TableView<RecommendationDTO> recommendationsTable;
+    @FXML
+    private TableColumn<RecommendationDTO, Long> idColumn;
+    @FXML
+    private TableColumn<RecommendationDTO, String> candidateFirstnameColumn;
+    @FXML
+    private TableColumn<RecommendationDTO, String> candidateLastnameColumn;
+    @FXML
+    private TableColumn<RecommendationDTO, String> positionColumn;
+    @FXML
+    private TableColumn<RecommendationDTO, String> statusColumn;
+    @FXML
+    private TableColumn<RecommendationDTO, String> submittedAtColumn; // Passe den Typ ggf. an
+
+    private final BackendService backendService = new BackendService();
+
 
     // Diese Methode wird nach dem Laden der FXML automatisch aufgerufen.
     @FXML
-    public void initialize() {
+    public void initialize(URL location, ResourceBundle resources){
         // Hier könntest du z.B. Daten aus einer REST-API laden und in der UI darstellen.
+        // Konfiguriere die Spalten, damit sie die entsprechenden Eigenschaften des DTO auslesen
+        idColumn.setCellValueFactory(new PropertyValueFactory<>("id"));
+        candidateFirstnameColumn.setCellValueFactory(new PropertyValueFactory<>("candidateFirstname"));
+        candidateLastnameColumn.setCellValueFactory(new PropertyValueFactory<>("candidateLastname"));
+        positionColumn.setCellValueFactory(new PropertyValueFactory<>("position"));
+        statusColumn.setCellValueFactory(new PropertyValueFactory<>("status"));
+        submittedAtColumn.setCellValueFactory(new PropertyValueFactory<>("submittedAt"));
+
+        // Lade die Daten beim Start einmalig
+        handleRefresh();
         System.out.println("HR Dashboard Controller initialisiert.");
+    }
+
+    /**
+     * Wird aufgerufen, wenn der "Daten aktualisieren"-Button betätigt wird.
+     * Lädt die aktuellen Empfehlungen vom Backend und aktualisiert die Tabelle.
+     */
+    @FXML
+    private void handleRefresh() {
+        try {
+            List<RecommendationDTO> recommendations = backendService.fetchRecommendations();
+            recommendationsTable.setItems(FXCollections.observableArrayList(recommendations));
+        } catch (IOException | InterruptedException e) {
+            // Hier könntest du auch eine Fehlermeldung in der GUI anzeigen
+            e.printStackTrace();
+        }
     }
 
     // Logout-Button: Wechselt zurück zur Rollenauswahl oder zum Login.
