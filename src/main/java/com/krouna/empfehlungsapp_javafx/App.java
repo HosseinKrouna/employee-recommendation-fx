@@ -7,7 +7,6 @@ import javafx.stage.Stage;
 
 import java.io.IOException;
 
-//ToDo: Mitarbeiteranmeldunge fixen
 
 public class App extends Application {
     @Override

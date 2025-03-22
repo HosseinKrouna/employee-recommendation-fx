@@ -4,10 +4,16 @@ import com.krouna.empfehlungsapp_javafx.dto.RecommendationDTO;
 import com.krouna.empfehlungsapp_javafx.services.BackendService;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Node;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.stage.Stage;
 
 import java.io.IOException;
 import java.util.List;
@@ -64,8 +70,28 @@ public class EmployeeDashboardController {
     }
 
     @FXML
-    private void handleLogout() {
-        // Logik zum Ausloggen, z.B. Wechsel zur Login-Seite
+    private void handleLogout(ActionEvent event) {
+        switchScene(event, "/com/krouna/empfehlungsapp_javafx/role-selection-view.fxml");
         System.out.println("Logout...");
+    }
+
+
+    /**
+     * Hilfsmethode zum Wechseln der Scene.
+     *
+     * @param event    Das auslösende ActionEvent.
+     * @param fxmlPath Der Pfad zur FXML-Datei, zu der gewechselt werden soll.
+     */
+    private void switchScene(ActionEvent event, String fxmlPath) {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource(fxmlPath));
+            Parent root = loader.load();
+            Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
+            // Übernehme die aktuelle Größe des Fensters:
+            Scene newScene = new Scene(root, stage.getWidth(), stage.getHeight());
+            stage.setScene(newScene);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }

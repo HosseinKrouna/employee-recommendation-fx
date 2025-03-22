@@ -5,11 +5,17 @@ import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
 import javafx.scene.Node;
 import javafx.stage.Stage;
 import java.io.IOException;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.nio.charset.StandardCharsets;
 
 public class EmployeeLoginController {
 
@@ -18,6 +24,9 @@ public class EmployeeLoginController {
 
     @FXML
     private PasswordField passwordField;
+
+    @FXML
+    private Label errorLabel;
 
     /**
      * Wird aufgerufen, wenn der Benutzer auf "Anmelden" klickt.
@@ -29,16 +38,37 @@ public class EmployeeLoginController {
         String username = usernameField.getText();
         String password = passwordField.getText();
 
-        // Beispielhafte Validierung – hier später die echte Authentifizierung einfügen
-        if (username.isEmpty() || password.isEmpty()) {
-            System.out.println("Bitte Benutzername und Passwort eingeben!");
-            return;
+        // Erstelle JSON-Body für den Request
+        String jsonBody = String.format("{\"username\": \"%s\", \"password\": \"%s\"}", username, password);
+
+        // HttpClient erstellen
+        HttpClient client = HttpClient.newHttpClient();
+
+        // HttpRequest an das Spring Boot Backend (z. B. http://localhost:8080/api/users/login)
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create("http://localhost:8080/api/users/login"))
+                .header("Content-Type", "application/json")
+                .POST(HttpRequest.BodyPublishers.ofString(jsonBody, StandardCharsets.UTF_8))
+                .build();
+
+        try {
+            // Sende den Request synchron und empfange die Antwort
+            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+
+            if (response.statusCode() == 200) {
+                // Bei erfolgreicher Authentifizierung: Wechsel zum HR-Dashboard
+                switchScene(event, "/com/krouna/empfehlungsapp_javafx/employee-dashboard-view.fxml");
+            } else {
+                // Falls die Authentifizierung fehlschlägt, Fehlermeldung anzeigen
+                errorLabel.setText("Ungültige Anmeldedaten!");
+            }
+        } catch (IOException | InterruptedException e) {
+            e.printStackTrace();
+            errorLabel.setText("Fehler bei der Anfrage!");
         }
 
         System.out.println("Mitarbeiter-Login versucht für: " + username);
 
-        // Bei erfolgreichem Login zum Dashboard wechseln (Pfad anpassen)
-        switchScene(event, "/com/krouna/empfehlungsapp_javafx/employee-dashboard-view.fxml");
     }
 
     /**

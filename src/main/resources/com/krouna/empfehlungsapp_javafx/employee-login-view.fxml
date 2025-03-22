@@ -18,6 +18,10 @@
 
     <Label text="Mitarbeiter Login" style="-fx-font-size: 18px; -fx-font-weight: bold;" />
 
+
+       <!-- Error Label zum Anzeigen von Fehlermeldungen -->
+        <Label fx:id="errorLabel" textFill="red"/>
+
     <TextField fx:id="usernameField" promptText="Benutzername" />
     <PasswordField fx:id="passwordField" promptText="Passwort" />
 
