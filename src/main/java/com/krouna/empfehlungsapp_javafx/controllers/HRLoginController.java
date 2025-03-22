@@ -57,7 +57,7 @@ public class HRLoginController {
 
             if (response.statusCode() == 200) {
                 // Bei erfolgreicher Authentifizierung: Wechsel zum HR-Dashboard
-                switchScene(event, "/com/krouna/empfehlungsapp_javafx/hr-dashboard.fxml");
+                switchScene(event, "/com/krouna/empfehlungsapp_javafx/hr-dashboard-view.fxml");
             } else {
                 // Falls die Authentifizierung fehlschlägt, Fehlermeldung anzeigen
                 errorLabel.setText("Ungültige Anmeldedaten!");

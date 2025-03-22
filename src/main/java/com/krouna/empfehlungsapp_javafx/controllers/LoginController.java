@@ -43,9 +43,9 @@ public class LoginController {
         try {
             FXMLLoader loader;
             if (role.equals("Mitarbeiter")) {
-                loader = new FXMLLoader(getClass().getResource("/com/krouna/empfehlungsapp_javafx/employee-dashboard.fxml"));
+                loader = new FXMLLoader(getClass().getResource("/com/krouna/empfehlungsapp_javafx/employee-dashboard-view.fxml"));
             } else {
-                loader = new FXMLLoader(getClass().getResource("/com/krouna/empfehlungsapp_javafx/hr-dashboard.fxml"));
+                loader = new FXMLLoader(getClass().getResource("/com/krouna/empfehlungsapp_javafx/hr-dashboard-view.fxml"));
             }
 
             Stage stage = (Stage) usernameField.getScene().getWindow();

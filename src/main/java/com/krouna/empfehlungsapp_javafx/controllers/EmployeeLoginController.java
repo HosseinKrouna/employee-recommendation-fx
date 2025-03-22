@@ -38,7 +38,7 @@ public class EmployeeLoginController {
         System.out.println("Mitarbeiter-Login versucht für: " + username);
 
         // Bei erfolgreichem Login zum Dashboard wechseln (Pfad anpassen)
-        switchScene(event, "/com/krouna/empfehlungsapp_javafx/employee-dashboard.fxml");
+        switchScene(event, "/com/krouna/empfehlungsapp_javafx/employee-dashboard-view.fxml");
     }
 
     /**
