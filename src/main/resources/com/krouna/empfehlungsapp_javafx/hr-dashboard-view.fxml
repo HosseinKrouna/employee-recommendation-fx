@@ -1,29 +1,46 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
-<?import javafx.scene.control.Label?>
-<?import javafx.scene.control.Button?>
 
 <BorderPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
             fx:controller="com.krouna.empfehlungsapp_javafx.controllers.HRDashboardController">
 
     <!-- Kopfbereich: Titel und Logout-Button -->
     <top>
-        <HBox spacing="10" alignment="CENTER" style="-fx-padding: 10;">
+        <HBox spacing="20" alignment="CENTER" style="-fx-padding: 10;">
             <Label text="HR Dashboard" style="-fx-font-size: 24px; -fx-font-weight: bold;"/>
             <Button text="Abmelden" onAction="#handleLogout"/>
         </HBox>
     </top>
 
-    <!-- Zentrum: Platz für Inhalte, z.B. eine Liste der Empfehlungen -->
+    <!-- Zentrum: Bereich für die Anzeige der Empfehlungen -->
     <center>
         <VBox spacing="15" alignment="CENTER" style="-fx-padding: 20;">
             <Label text="Willkommen, HR Admin!" style="-fx-font-size: 18px;"/>
-            <Label text="Hier werden die eingegangenen Empfehlungen angezeigt."/>
-            <!-- Weitere Elemente (wie eine Tabelle oder Liste) können hier eingefügt werden -->
+            <TableView fx:id="recommendationsTable" prefHeight="300" prefWidth="600">
+                <columns>
+                    <TableColumn fx:id="idColumn" text="ID" prefWidth="50"/>
+                    <TableColumn fx:id="candidateFirstnameColumn" text="Vorname" prefWidth="120"/>
+                    <TableColumn fx:id="candidateLastnameColumn" text="Nachname" prefWidth="120"/>
+                    <TableColumn fx:id="positionColumn" text="Position" prefWidth="120"/>
+                    <TableColumn fx:id="statusColumn" text="Status" prefWidth="120"/>
+                    <TableColumn fx:id="submittedAtColumn" text="Eingereicht" prefWidth="150"/>
+                </columns>
+            </TableView>
         </VBox>
     </center>
+
+    <!-- Fußbereich: Button zum Aktualisieren der Daten -->
+    <bottom>
+        <HBox alignment="CENTER" spacing="10" style="-fx-padding: 10;">
+            <Button text="Daten aktualisieren" onAction="#handleRefresh"/>
+        </HBox>
+    </bottom>
 
 </BorderPane>
