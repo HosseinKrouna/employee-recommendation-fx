@@ -5,10 +5,13 @@ public class RecommendationDTO {
     private String candidateFirstname;
     private String candidateLastname;
     private String position;
+    private String documentCvPath;
+    private String documentCoverLetterPath;
     private String status;
     private String submittedAt;
+    private Long userId;
+    private String recommendedByUsername; // Nur zur Anzeige
 
-    // Getter und Setter
 
     public Long getId() {
         return id;
@@ -42,6 +45,22 @@ public class RecommendationDTO {
         this.position = position;
     }
 
+    public String getDocumentCvPath() {
+        return documentCvPath;
+    }
+
+    public void setDocumentCvPath(String documentCvPath) {
+        this.documentCvPath = documentCvPath;
+    }
+
+    public String getDocumentCoverLetterPath() {
+        return documentCoverLetterPath;
+    }
+
+    public void setDocumentCoverLetterPath(String documentCoverLetterPath) {
+        this.documentCoverLetterPath = documentCoverLetterPath;
+    }
+
     public String getStatus() {
         return status;
     }
@@ -56,5 +75,21 @@ public class RecommendationDTO {
 
     public void setSubmittedAt(String submittedAt) {
         this.submittedAt = submittedAt;
+    }
+
+    public String getRecommendedByUsername() {
+        return recommendedByUsername;
+    }
+
+    public Long getUserId() {
+        return userId;
+    }
+
+    public void setUserId(Long userId) {
+        this.userId = userId;
+    }
+
+    public void setRecommendedByUsername(String recommendedByUsername) {
+        this.recommendedByUsername = recommendedByUsername;
     }
 }

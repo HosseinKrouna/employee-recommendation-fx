@@ -11,6 +11,8 @@
 <BorderPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
             fx:controller="com.krouna.empfehlungsapp_javafx.controllers.HRDashboardController">
 
+               <Label fx:id="errorLabel" textFill="red" />
+
     <!-- Kopfbereich: Titel und Logout-Button -->
     <top>
         <HBox spacing="20" alignment="CENTER" style="-fx-padding: 10;">
@@ -31,6 +33,8 @@
                     <TableColumn fx:id="positionColumn" text="Position" prefWidth="120"/>
                     <TableColumn fx:id="statusColumn" text="Status" prefWidth="120"/>
                     <TableColumn fx:id="submittedAtColumn" text="Eingereicht" prefWidth="150"/>
+                    <TableColumn fx:id="recommendedByColumn" text="Empfohlen von" />
+
                 </columns>
             </TableView>
         </VBox>

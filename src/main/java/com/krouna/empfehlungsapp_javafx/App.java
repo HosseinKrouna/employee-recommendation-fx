@@ -13,7 +13,7 @@ public class App extends Application {
     public void start(Stage stage) throws IOException {
         FXMLLoader fxmlLoader = new FXMLLoader(App.class.getResource("/com/krouna/empfehlungsapp_javafx/role-selection-view.fxml"));
         Scene scene = new Scene(fxmlLoader.load(), 600, 400);
-        stage.setTitle("EmpfehlungsApp - Rolle wählen");
+        stage.setTitle("EmpfehlungsApp");
         stage.setScene(scene);
         stage.show();
     }

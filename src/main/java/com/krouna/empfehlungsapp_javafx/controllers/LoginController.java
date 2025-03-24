@@ -1,5 +1,6 @@
 package com.krouna.empfehlungsapp_javafx.controllers;
 
+import com.krouna.empfehlungsapp_javafx.util.UserSession;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
@@ -30,13 +31,17 @@ public class LoginController {
             showAlert("Fehler", "Bitte eine Rolle auswählen!");
             return;
         }
-
-        // Simpler Test-Login (später mit Datenbank verbinden)
-        if (isValidUser(username, password, role)) {
-            switchToDashboard(role);
-        } else {
-            showAlert("Fehler", "Ungültige Anmeldeinformationen!");
-        }
+//
+//        // Simpler Test-Login (später mit Datenbank verbinden)
+//        if (isValidUser(username, password, role)) {
+//            // Zuerst den Benutzernamen in die Session setzen
+//            UserSession.getInstance().setUsername(username);
+//            // Dann ausgeben
+//            System.out.println("Benutzername in der Session: " + UserSession.getInstance().getUsername());
+//            switchToDashboard(role);
+//        } else {
+//            showAlert("Fehler", "Ungültige Anmeldeinformationen!");
+//        }
     }
 
     private void switchToDashboard(String role) {
@@ -55,10 +60,10 @@ public class LoginController {
         }
     }
 
-    private boolean isValidUser(String username, String password, String role) {
-        // Hier später Datenbank-Check mit Spring Boot einbauen
-        return username.equals("test") && password.equals("1234");
-    }
+//    private boolean isValidUser(String username, String password, String role) {
+//        // Hier später Datenbank-Check mit Spring Boot einbauen
+//        return username.equals("test") && password.equals("1234");
+//    }
 
     private void showAlert(String title, String message) {
         Alert alert = new Alert(Alert.AlertType.ERROR);
