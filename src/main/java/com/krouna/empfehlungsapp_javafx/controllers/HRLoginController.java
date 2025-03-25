@@ -1,5 +1,8 @@
 package com.krouna.empfehlungsapp_javafx.controllers;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.krouna.empfehlungsapp_javafx.util.UserSession;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -37,13 +40,9 @@ public class HRLoginController {
         String username = usernameField.getText();
         String password = passwordField.getText();
 
-        // Erstelle JSON-Body für den Request
         String jsonBody = String.format("{\"username\": \"%s\", \"password\": \"%s\"}", username, password);
-
-        // HttpClient erstellen
         HttpClient client = HttpClient.newHttpClient();
 
-        // HttpRequest an das Spring Boot Backend (z. B. http://localhost:8080/api/users/login)
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create("http://localhost:8080/api/users/login"))
                 .header("Content-Type", "application/json")
@@ -51,21 +50,37 @@ public class HRLoginController {
                 .build();
 
         try {
-            // Sende den Request synchron und empfange die Antwort
             HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
 
             if (response.statusCode() == 200) {
-                // Bei erfolgreicher Authentifizierung: Wechsel zum HR-Dashboard
+                ObjectMapper mapper = new ObjectMapper();
+                JsonNode json = mapper.readTree(response.body());
+
+                long userId = json.get("id").asLong();
+                String returnedUsername = json.get("username").asText();
+                String role = json.get("role").asText();
+
+                // 🔒 Nur HR darf ins HR-Dashboard
+                if (!"HR".equalsIgnoreCase(role)) {
+                    errorLabel.setText("Kein Zugriff. Nur HR erlaubt!");
+                    return;
+                }
+
+                // ✅ Daten in UserSession speichern
+                UserSession.getInstance().setUserId(userId);
+                UserSession.getInstance().setUsername(returnedUsername);
+
                 switchScene(event, "/com/krouna/empfehlungsapp_javafx/hr-dashboard-view.fxml");
             } else {
-                // Falls die Authentifizierung fehlschlägt, Fehlermeldung anzeigen
                 errorLabel.setText("Ungültige Anmeldedaten!");
             }
+
         } catch (IOException | InterruptedException e) {
             e.printStackTrace();
             errorLabel.setText("Fehler bei der Anfrage!");
         }
     }
+
 
     /**
      * Wechselt die Scene und übernimmt dabei die aktuelle Fenstergröße.

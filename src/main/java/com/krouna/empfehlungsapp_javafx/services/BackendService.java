@@ -67,6 +67,23 @@ public class BackendService {
         }
     }
 
+    public List<RecommendationDTO> fetchAllRecommendations() throws IOException, InterruptedException {
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create("http://localhost:8080/api/recommendations"))
+                .GET()
+                .build();
+
+        HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+        System.out.println("HR Backend Response: " + response.body()); // Debug-Ausgabe
+
+        if (response.body() == null || response.body().isBlank()) {
+            return List.of(); // Leere Liste zurückgeben
+        }
+
+        return Arrays.asList(objectMapper.readValue(response.body(), RecommendationDTO[].class));
+    }
+
+
 
 
     /**
