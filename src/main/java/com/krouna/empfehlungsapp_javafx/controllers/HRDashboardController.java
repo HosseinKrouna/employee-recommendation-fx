@@ -1,11 +1,13 @@
 package com.krouna.empfehlungsapp_javafx.controllers;
 
+import com.krouna.empfehlungsapp_javafx.util.UserSession;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.control.Label;
 import javafx.stage.Stage;
 import java.io.IOException;
 
@@ -41,6 +43,13 @@ public class HRDashboardController  implements Initializable{
     @FXML
     private TableColumn<RecommendationDTO, String> submittedAtColumn; // Passe den Typ ggf. an
 
+    @FXML
+    private TableColumn<RecommendationDTO, String> recommendedByColumn;
+
+    @FXML
+    private Label errorLabel;
+
+
     private final BackendService backendService = new BackendService();
 
 
@@ -56,6 +65,11 @@ public class HRDashboardController  implements Initializable{
         statusColumn.setCellValueFactory(new PropertyValueFactory<>("status"));
         submittedAtColumn.setCellValueFactory(new PropertyValueFactory<>("submittedAt"));
 
+        recommendedByColumn.setCellValueFactory(cellData ->
+                new javafx.beans.property.SimpleStringProperty(cellData.getValue().getRecommendedByUsername())
+        );
+
+
         // Lade die Daten beim Start einmalig
         handleRefresh();
         System.out.println("HR Dashboard Controller initialisiert.");
@@ -68,11 +82,11 @@ public class HRDashboardController  implements Initializable{
     @FXML
     private void handleRefresh() {
         try {
-            List<RecommendationDTO> recommendations = backendService.fetchRecommendations();
+            List<RecommendationDTO> recommendations = backendService.fetchAllRecommendations(); // <-- wichtig
             recommendationsTable.setItems(FXCollections.observableArrayList(recommendations));
         } catch (IOException | InterruptedException e) {
-            // Hier könntest du auch eine Fehlermeldung in der GUI anzeigen
             e.printStackTrace();
+            errorLabel.setText("Fehler beim Laden der Empfehlungen.");
         }
     }
 

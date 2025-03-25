@@ -1,5 +1,10 @@
 package com.krouna.empfehlungsapp_javafx.controllers;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.krouna.empfehlungsapp_javafx.services.BackendService;
+import com.krouna.empfehlungsapp_javafx.util.UserSession;
+import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -10,6 +15,7 @@ import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
 import javafx.scene.Node;
 import javafx.stage.Stage;
+
 import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -28,48 +34,46 @@ public class EmployeeLoginController {
     @FXML
     private Label errorLabel;
 
+    private final BackendService backendService = new BackendService();
+
     /**
      * Wird aufgerufen, wenn der Benutzer auf "Anmelden" klickt.
-     * Hier kannst du später die Anmeldeprüfung (z.B. über einen REST-API-Aufruf)
-     * implementieren.
      */
     @FXML
     private void handleLogin(ActionEvent event) {
         String username = usernameField.getText();
         String password = passwordField.getText();
 
-        // Erstelle JSON-Body für den Request
-        String jsonBody = String.format("{\"username\": \"%s\", \"password\": \"%s\"}", username, password);
-
-        // HttpClient erstellen
-        HttpClient client = HttpClient.newHttpClient();
-
-        // HttpRequest an das Spring Boot Backend (z. B. http://localhost:8080/api/users/login)
-        HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create("http://localhost:8080/api/users/login"))
-                .header("Content-Type", "application/json")
-                .POST(HttpRequest.BodyPublishers.ofString(jsonBody, StandardCharsets.UTF_8))
-                .build();
-
-        try {
-            // Sende den Request synchron und empfange die Antwort
-            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-
+        backendService.login(username, password).thenAccept(response -> {
             if (response.statusCode() == 200) {
-                // Bei erfolgreicher Authentifizierung: Wechsel zum HR-Dashboard
-                switchScene(event, "/com/krouna/empfehlungsapp_javafx/employee-dashboard-view.fxml");
+                try {
+                    ObjectMapper mapper = new ObjectMapper();
+                    JsonNode json = mapper.readTree(response.body());
+
+                    long userId = json.get("id").asLong();            // 👈 ID aus Response
+                    String returnedUsername = json.get("username").asText();  // optional: falls Server den echten Namen zurückschickt
+
+                    UserSession.getInstance().setUserId(userId);      // ✅ jetzt gesetzt!
+                    UserSession.getInstance().setUsername(returnedUsername);
+
+                    Platform.runLater(() -> switchScene(event, "/com/krouna/empfehlungsapp_javafx/employee-dashboard-view.fxml"));
+
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    Platform.runLater(() -> errorLabel.setText("Fehler beim Verarbeiten der Antwort!"));
+                }
             } else {
-                // Falls die Authentifizierung fehlschlägt, Fehlermeldung anzeigen
-                errorLabel.setText("Ungültige Anmeldedaten!");
+                Platform.runLater(() -> errorLabel.setText("Ungültige Anmeldedaten!"));
             }
-        } catch (IOException | InterruptedException e) {
+        }).exceptionally(e -> {
             e.printStackTrace();
-            errorLabel.setText("Fehler bei der Anfrage!");
-        }
+            Platform.runLater(() -> errorLabel.setText("Fehler bei der Anfrage!"));
+            return null;
+        });
 
         System.out.println("Mitarbeiter-Login versucht für: " + username);
-
     }
+
 
     /**
      * Wird aufgerufen, wenn der Benutzer den Registrieren-Button klickt.

@@ -2,6 +2,7 @@ package com.krouna.empfehlungsapp_javafx.controllers;
 
 import com.krouna.empfehlungsapp_javafx.dto.RecommendationDTO;
 import com.krouna.empfehlungsapp_javafx.services.BackendService;
+import com.krouna.empfehlungsapp_javafx.util.UserSession;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
@@ -10,6 +11,7 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.control.Label;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.cell.PropertyValueFactory;
@@ -19,6 +21,12 @@ import java.io.IOException;
 import java.util.List;
 
 public class EmployeeDashboardController {
+
+    @FXML
+    private Label welcomeLabel;
+    @FXML
+    private Label errorLabel;
+
 
     @FXML
     private TableView<RecommendationDTO> recommendationsTable;
@@ -40,6 +48,9 @@ public class EmployeeDashboardController {
 
     @FXML
     public void initialize() {
+        String currentUsername = UserSession.getInstance().getUsername();
+        System.out.println("EmployeeDashboardController: currentUsername = " + currentUsername);
+        welcomeLabel.setText("Willkommen, " + currentUsername + "!");
         // Initialisiere die TableView-Spalten
         idColumn.setCellValueFactory(new PropertyValueFactory<>("id"));
         candidateFirstnameColumn.setCellValueFactory(new PropertyValueFactory<>("candidateFirstname"));
@@ -54,23 +65,30 @@ public class EmployeeDashboardController {
 
     private void loadRecommendations() {
         try {
-            List<RecommendationDTO> recommendations = backendService.fetchRecommendations();
+            String username = UserSession.getInstance().getUsername();
+            Long userId = UserSession.getInstance().getUserId();
+
+            List<RecommendationDTO> recommendations = backendService.fetchRecommendationsForUser(userId);
             ObservableList<RecommendationDTO> observableList = FXCollections.observableArrayList(recommendations);
             recommendationsTable.setItems(observableList);
         } catch (IOException | InterruptedException e) {
             e.printStackTrace();
-            // Hier könntest du auch eine Fehlermeldung in der UI anzeigen
+            if (errorLabel != null) {
+                errorLabel.setText("Fehler beim Laden der Empfehlungen.");
+            }
         }
     }
 
+
     @FXML
-    private void handleNewRecommendation() {
-        // Logik zum Erstellen einer neuen Empfehlung, z.B. durch Wechseln zu einem neuen Formular
+    private void handleNewRecommendation(ActionEvent event) {
+        switchScene(event, "/com/krouna/empfehlungsapp_javafx/employee-new-recommendation-view.fxml");
         System.out.println("Neue Empfehlung erstellen...");
     }
 
     @FXML
     private void handleLogout(ActionEvent event) {
+        UserSession.getInstance().setUsername(null);
         switchScene(event, "/com/krouna/empfehlungsapp_javafx/role-selection-view.fxml");
         System.out.println("Logout...");
     }
