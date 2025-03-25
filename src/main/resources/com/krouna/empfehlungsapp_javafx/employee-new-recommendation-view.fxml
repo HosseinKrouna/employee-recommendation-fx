@@ -35,15 +35,16 @@
     <!-- CV-Dokument (Textfeld + Button) -->
     <Label text="CV-Dokument:" GridPane.columnIndex="0" GridPane.rowIndex="4"/>
     <HBox spacing="5" GridPane.columnIndex="1" GridPane.rowIndex="4">
-        <TextField fx:id="documentCvField" promptText="Pfad zum Lebenslauf" HBox.hgrow="ALWAYS"/>
-        <Button text="Durchsuchen" onAction="#handleBrowseCV"/>
+        <TextField fx:id="documentCvField" editable="false" promptText="Pfad zum Lebenslauf" HBox.hgrow="ALWAYS"/>
+        <Button text="📂 Durchsuchen" onAction="#handleBrowseCV"/>
+
     </HBox>
 
     <!-- Anschreiben (Textfeld + Button) -->
     <Label text="Anschreiben:" GridPane.columnIndex="0" GridPane.rowIndex="5"/>
     <HBox spacing="5" GridPane.columnIndex="1" GridPane.rowIndex="5">
-        <TextField fx:id="documentCoverLetterField" promptText="Pfad zum Anschreiben" HBox.hgrow="ALWAYS"/>
-        <Button text="Durchsuchen" onAction="#handleBrowseCoverLetter"/>
+       <TextField fx:id="documentCoverLetterField" editable="false" promptText="Pfad zum Anschreiben" HBox.hgrow="ALWAYS"/>
+        <Button text="📂 Durchsuchen" onAction="#handleBrowseCoverLetter"/>
     </HBox>
 
     <!-- Fehlermeldung -->
