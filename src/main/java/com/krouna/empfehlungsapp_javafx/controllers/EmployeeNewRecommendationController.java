@@ -10,6 +10,7 @@ import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.stage.FileChooser;
@@ -96,6 +97,7 @@ public class EmployeeNewRecommendationController {
             if (response.statusCode() == 201 || response.statusCode() == 200) {
                 System.out.println("Empfehlung erfolgreich gespeichert.");
                 Platform.runLater(() -> switchScene(event, "/com/krouna/empfehlungsapp_javafx/employee-dashboard-view.fxml"));
+                showInfo("Info", "Empfehlung erfolgreich gespeichert");
 //                successLabel.setText("✅ Empfehlung erfolgreich gespeichert!");
             } else {
                 Platform.runLater(() -> errorLabel.setText("Fehler beim Speichern!"));
@@ -123,5 +125,13 @@ public class EmployeeNewRecommendationController {
             e.printStackTrace();
             errorLabel.setText("Fehler beim Szenenwechsel!");
         }
+    }
+
+    private void showInfo(String title, String message) {
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        alert.setContentText(message);
+        alert.showAndWait();
     }
 }
