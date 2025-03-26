@@ -69,7 +69,6 @@ public class HRDashboardController implements Initializable {
 
 
     // Diese Methode wird nach dem Laden der FXML automatisch aufgerufen.
-    @FXML
     public void initialize(URL location, ResourceBundle resources) {
         // Hier könntest du z.B. Daten aus einer REST-API laden und in der UI darstellen.
         // Konfiguriere die Spalten, damit sie die entsprechenden Eigenschaften des DTO auslesen
