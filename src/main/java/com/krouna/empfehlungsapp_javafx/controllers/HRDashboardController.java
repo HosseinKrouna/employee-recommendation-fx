@@ -9,6 +9,8 @@ import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 
@@ -84,9 +86,25 @@ public class HRDashboardController implements Initializable {
 
         cvFileColumn.setCellValueFactory(new PropertyValueFactory<>("documentCvPath"));
         cvFileColumn.setCellFactory(col -> new javafx.scene.control.TableCell<>() {
-            private final Button downloadButton = new Button("📄");
+            private final Button downloadButton = new Button();
 
             {
+                // Bild setzen
+                ImageView icon = new ImageView(new Image(getClass().getResourceAsStream("/images/pdf-icon.png")));
+                icon.setFitWidth(16);
+                icon.setFitHeight(16);
+                downloadButton.setGraphic(icon);
+                downloadButton.setStyle("-fx-background-color: transparent;");
+
+                // 🔍 Tooltip setzen
+                Tooltip tooltip = new Tooltip("PDF herunterladen");
+                Tooltip.install(downloadButton, tooltip);
+
+                // ✨ Hover-Effekt
+                downloadButton.setStyle("-fx-background-color: transparent; -fx-cursor: hand;");
+                downloadButton.setOnMouseEntered(e -> downloadButton.setStyle("-fx-background-color: #e0e0e0; -fx-cursor: hand;"));
+                downloadButton.setOnMouseExited(e -> downloadButton.setStyle("-fx-background-color: transparent; -fx-cursor: hand;"));
+
                 downloadButton.setOnAction(e -> {
                     RecommendationDTO recommendation = getTableView().getItems().get(getIndex());
                     downloadFile(recommendation.getDocumentCvPath());
@@ -101,9 +119,25 @@ public class HRDashboardController implements Initializable {
         });
         coverLetterFileColumn.setCellValueFactory(new PropertyValueFactory<>("documentCoverLetterPath"));
         coverLetterFileColumn.setCellFactory(col -> new javafx.scene.control.TableCell<>() {
-            private final Button downloadButton = new Button("📄");
+            private final Button downloadButton = new Button();
 
             {
+                // Bild setzen
+                ImageView icon = new ImageView(new Image(getClass().getResourceAsStream("/images/pdf-icon.png")));
+                icon.setFitWidth(16);
+                icon.setFitHeight(16);
+                downloadButton.setGraphic(icon);
+                downloadButton.setStyle("-fx-background-color: transparent;");
+
+                // 🔍 Tooltip setzen
+                Tooltip tooltip = new Tooltip("PDF herunterladen");
+                Tooltip.install(downloadButton, tooltip);
+
+                // ✨ Hover-Effekt
+                downloadButton.setStyle("-fx-background-color: transparent; -fx-cursor: hand;");
+                downloadButton.setOnMouseEntered(e -> downloadButton.setStyle("-fx-background-color: #e0e0e0; -fx-cursor: hand;"));
+                downloadButton.setOnMouseExited(e -> downloadButton.setStyle("-fx-background-color: transparent; -fx-cursor: hand;"));
+
                 downloadButton.setOnAction(e -> {
                     RecommendationDTO recommendation = getTableView().getItems().get(getIndex());
                     downloadFile(recommendation.getDocumentCoverLetterPath());
