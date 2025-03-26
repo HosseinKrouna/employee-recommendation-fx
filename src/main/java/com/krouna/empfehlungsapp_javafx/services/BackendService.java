@@ -1,8 +1,10 @@
 package com.krouna.empfehlungsapp_javafx.services;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.krouna.empfehlungsapp_javafx.dto.RecommendationDTO;
 import com.krouna.empfehlungsapp_javafx.dto.RecommendationRequestDTO;
+import com.krouna.empfehlungsapp_javafx.dto.UserDataDTO;
 
 import java.io.IOException;
 import java.net.URI;
@@ -12,6 +14,7 @@ import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 public class BackendService {
@@ -113,6 +116,43 @@ public class BackendService {
         RecommendationDTO[] array = objectMapper.readValue(response.body(), RecommendationDTO[].class);
         return Arrays.asList(array);
     }
+
+
+    public CompletableFuture<Optional<UserDataDTO>> authenticateUser(String username, String password) {
+        ObjectMapper mapper = new ObjectMapper();
+        return login(username, password).thenApply(response -> {
+            if (response.statusCode() == 200) {
+                try {
+                    JsonNode json = mapper.readTree(response.body());
+                    long userId = json.get("id").asLong();
+                    String returnedUsername = json.get("username").asText();
+                    return Optional.of(new UserDataDTO(userId, returnedUsername));
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    return Optional.empty();
+                }
+            } else {
+                return Optional.empty();
+            }
+        });
+    }
+
+    public CompletableFuture<HttpResponse<String>> registerEmployee(String username, String password) {
+        String jsonBody = String.format(
+                "{\"username\":\"%s\", \"password\":\"%s\", \"role\":\"MITARBEITER\"}",
+                username, password
+        );
+
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create("http://localhost:8080/api/users/register-employee"))
+                .header("Content-Type", "application/json")
+                .POST(HttpRequest.BodyPublishers.ofString(jsonBody, StandardCharsets.UTF_8))
+                .build();
+
+        return HttpClient.newHttpClient()
+                .sendAsync(request, HttpResponse.BodyHandlers.ofString());
+    }
+
 
 }
 
