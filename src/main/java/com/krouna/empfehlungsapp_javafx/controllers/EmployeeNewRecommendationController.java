@@ -9,17 +9,35 @@ import com.krouna.empfehlungsapp_javafx.util.UserSession;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.scene.control.TextField;
+import javafx.scene.control.*;
 import javafx.stage.FileChooser;
 import java.io.File;
 import java.util.function.Consumer;
 
 public class EmployeeNewRecommendationController {
 
+//    @FXML private TextField candidateFirstnameField;
+//    @FXML private TextField candidateLastnameField;
+//    @FXML private TextField positionField;
+//    @FXML private TextField documentCvField;
+
     @FXML private TextField candidateFirstnameField;
     @FXML private TextField candidateLastnameField;
-    @FXML private TextField positionField;
-    @FXML private TextField documentCvField;
+    @FXML private TextField emailField;
+    @FXML private TextField phoneField;
+    @FXML private TextField knownFromField;
+    @FXML private ComboBox<String> employmentStatusCombo;
+    @FXML private ComboBox<String> cvChoiceCombo;
+    @FXML private TextField cvLinkField;
+    @FXML private Button uploadCvButton;
+    @FXML private DatePicker contactDatePicker;
+    @FXML private TextField conversationPeriodField;
+    @FXML private ComboBox<String> personalityTypeCombo;
+    @FXML private TextArea hobbiesField;
+    @FXML private TextArea projectExperienceField;
+    @FXML private Button submitButton;
+
+
 
     private String uploadedCvFilename;
 
