@@ -28,6 +28,7 @@
             <TableColumn fx:id="positionColumn" text="Position" prefWidth="100" />
             <TableColumn fx:id="statusColumn" text="Status" prefWidth="100" />
             <TableColumn fx:id="submittedAtColumn" text="Eingereicht am" prefWidth="150" />
+            <TableColumn fx:id="cvFileColumn" text="CV" />
         </columns>
     </TableView>
 

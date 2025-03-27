@@ -6,7 +6,7 @@ public class RecommendationRequestDTO {
     private String candidateLastname;
     private String position;
     private String documentCvPath;
-    private String documentCoverLetterPath;
+
 
     // Getter & Setter
 
@@ -25,7 +25,6 @@ public class RecommendationRequestDTO {
     public String getDocumentCvPath() { return documentCvPath; }
     public void setDocumentCvPath(String documentCvPath) { this.documentCvPath = documentCvPath; }
 
-    public String getDocumentCoverLetterPath() { return documentCoverLetterPath; }
-    public void setDocumentCoverLetterPath(String documentCoverLetterPath) { this.documentCoverLetterPath = documentCoverLetterPath; }
+
 }
 

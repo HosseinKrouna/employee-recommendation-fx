@@ -2,32 +2,28 @@ package com.krouna.empfehlungsapp_javafx.controllers;
 
 import com.krouna.empfehlungsapp_javafx.dto.RecommendationDTO;
 import com.krouna.empfehlungsapp_javafx.services.BackendService;
+import com.krouna.empfehlungsapp_javafx.services.FileDownloadService;
+import com.krouna.empfehlungsapp_javafx.ui.cells.DownloadButtonTableCell;
+import com.krouna.empfehlungsapp_javafx.util.DialogUtil;
+import com.krouna.empfehlungsapp_javafx.util.SceneUtil;
 import com.krouna.empfehlungsapp_javafx.util.UserSession;
 import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.fxml.FXMLLoader;
-import javafx.scene.Node;
-import javafx.scene.Parent;
-import javafx.scene.Scene;
-import javafx.scene.control.Label;
-import javafx.scene.control.TableColumn;
-import javafx.scene.control.TableView;
+import javafx.fxml.Initializable;
+import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
-import javafx.stage.Stage;
-
 import java.io.IOException;
-import java.util.List;
+import java.net.URL;
+import java.util.ResourceBundle;
 
-public class EmployeeDashboardController {
+
+public class EmployeeDashboardController implements Initializable {
 
     @FXML
     private Label welcomeLabel;
     @FXML
     private Label errorLabel;
-
-
     @FXML
     private TableView<RecommendationDTO> recommendationsTable;
 
@@ -43,73 +39,57 @@ public class EmployeeDashboardController {
     private TableColumn<RecommendationDTO, String> statusColumn;
     @FXML
     private TableColumn<RecommendationDTO, String> submittedAtColumn;
+    @FXML
+    private TableColumn<RecommendationDTO, String> cvFileColumn;
 
     private final BackendService backendService = new BackendService();
+    private final FileDownloadService fileDownloadService = new FileDownloadService();
 
-    @FXML
-    public void initialize() {
-        String currentUsername = UserSession.getInstance().getUsername();
-        System.out.println("EmployeeDashboardController: currentUsername = " + currentUsername);
-        welcomeLabel.setText("Willkommen, " + currentUsername + "!");
-        // Initialisiere die TableView-Spalten
-        idColumn.setCellValueFactory(new PropertyValueFactory<>("id"));
-        candidateFirstnameColumn.setCellValueFactory(new PropertyValueFactory<>("candidateFirstname"));
-        candidateLastnameColumn.setCellValueFactory(new PropertyValueFactory<>("candidateLastname"));
-        positionColumn.setCellValueFactory(new PropertyValueFactory<>("position"));
-        statusColumn.setCellValueFactory(new PropertyValueFactory<>("status"));
-        submittedAtColumn.setCellValueFactory(new PropertyValueFactory<>("submittedAt"));
-
-        // Lade die Daten vom Backend
+    @Override
+    public void initialize(URL location, ResourceBundle resources) {
+        welcomeLabel.setText("Willkommen, " + UserSession.getInstance().getUsername() + "!");
+        setupTableView();
         loadRecommendations();
     }
 
-    private void loadRecommendations() {
-        try {
-            String username = UserSession.getInstance().getUsername();
-            Long userId = UserSession.getInstance().getUserId();
+    private void setupTableView() {
+        setupColumn(idColumn, "id");
+        setupColumn(candidateFirstnameColumn, "candidateFirstname");
+        setupColumn(candidateLastnameColumn, "candidateLastname");
+        setupColumn(positionColumn, "position");
+        setupColumn(statusColumn, "status");
+        setupColumn(submittedAtColumn, "submittedAt");
+        setupColumn(cvFileColumn, "documentCvPath");
 
-            List<RecommendationDTO> recommendations = backendService.fetchRecommendationsForUser(userId);
-            ObservableList<RecommendationDTO> observableList = FXCollections.observableArrayList(recommendations);
-            recommendationsTable.setItems(observableList);
+        cvFileColumn.setCellFactory(col -> new DownloadButtonTableCell(fileDownloadService));
+    }
+
+    private <T> void setupColumn(TableColumn<RecommendationDTO, T> column, String propertyName) {
+        column.setCellValueFactory(new PropertyValueFactory<>(propertyName));
+    }
+
+    private void loadRecommendations() {
+        Long userId = UserSession.getInstance().getUserId();
+        try {
+            recommendationsTable.setItems(FXCollections.observableArrayList(
+                    backendService.fetchRecommendationsForUser(userId)
+            ));
         } catch (IOException | InterruptedException e) {
-            e.printStackTrace();
-            if (errorLabel != null) {
-                errorLabel.setText("Fehler beim Laden der Empfehlungen.");
-            }
+            DialogUtil.showError("Fehler beim Laden", "Empfehlungen konnten nicht geladen werden.");
         }
     }
 
-
     @FXML
     private void handleNewRecommendation(ActionEvent event) {
-        switchScene(event, "/com/krouna/empfehlungsapp_javafx/employee-new-recommendation-view.fxml");
-        System.out.println("Neue Empfehlung erstellen...");
+        System.out.println(getClass().getResource("/com/krouna/empfehlungsapp_javafx/employee-new-recommendation-view.fxml"));
+
+        SceneUtil.switchScene(event, "/com/krouna/empfehlungsapp_javafx/employee-new-recommendation-view.fxml");
     }
 
     @FXML
     private void handleLogout(ActionEvent event) {
         UserSession.getInstance().setUsername(null);
-        switchScene(event, "/com/krouna/empfehlungsapp_javafx/role-selection-view.fxml");
-        System.out.println("Logout...");
+        SceneUtil.switchScene(event, "/com/krouna/empfehlungsapp_javafx/role-selection-view.fxml");
     }
 
-
-    /**
-     * Hilfsmethode zum Wechseln der Scene.
-     *
-     * @param event    Das auslösende ActionEvent.
-     * @param fxmlPath Der Pfad zur FXML-Datei, zu der gewechselt werden soll.
-     */
-    private void switchScene(ActionEvent event, String fxmlPath) {
-        try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource(fxmlPath));
-            Parent root = loader.load();
-            Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
-            // Übernehme die aktuelle Größe des Fensters:
-            Scene newScene = new Scene(root, stage.getWidth(), stage.getHeight());
-            stage.setScene(newScene);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
 }

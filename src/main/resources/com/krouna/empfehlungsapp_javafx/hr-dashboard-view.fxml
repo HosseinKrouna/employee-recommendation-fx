@@ -34,7 +34,7 @@
                     <TableColumn fx:id="statusColumn" text="Status" prefWidth="120"/>
                     <TableColumn fx:id="submittedAtColumn" text="Eingereicht" prefWidth="150"/>
                     <TableColumn fx:id="recommendedByColumn" text="Empfohlen von" />
-
+                    <TableColumn fx:id="cvFileColumn" text="CV" />
                 </columns>
             </TableView>
         </VBox>
