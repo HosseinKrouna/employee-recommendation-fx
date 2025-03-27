@@ -5,35 +5,16 @@ import com.krouna.empfehlungsapp_javafx.services.BackendService;
 import com.krouna.empfehlungsapp_javafx.services.FileDownloadService;
 import com.krouna.empfehlungsapp_javafx.ui.cells.DownloadButtonTableCell;
 import com.krouna.empfehlungsapp_javafx.util.DialogUtil;
+import com.krouna.empfehlungsapp_javafx.util.SceneUtil;
 import com.krouna.empfehlungsapp_javafx.util.UserSession;
-import javafx.application.Platform;
 import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
-import javafx.scene.Node;
-import javafx.scene.Parent;
-import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
-import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
-import javafx.stage.FileChooser;
-import javafx.stage.Stage;
-
-import java.io.File;
 import java.io.IOException;
-import java.net.URI;
 import java.net.URL;
-import java.net.URLEncoder;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.util.List;
 import java.util.ResourceBundle;
 
 
@@ -102,24 +83,13 @@ public class EmployeeDashboardController implements Initializable {
     private void handleNewRecommendation(ActionEvent event) {
         System.out.println(getClass().getResource("/com/krouna/empfehlungsapp_javafx/employee-new-recommendation-view.fxml"));
 
-        switchScene(event, "/com/krouna/empfehlungsapp_javafx/employee-new-recommendation-view.fxml");
+        SceneUtil.switchScene(event, "/com/krouna/empfehlungsapp_javafx/employee-new-recommendation-view.fxml");
     }
 
     @FXML
     private void handleLogout(ActionEvent event) {
         UserSession.getInstance().setUsername(null);
-        switchScene(event, "/com/krouna/empfehlungsapp_javafx/role-selection-view.fxml");
-    }
-
-    private void switchScene(ActionEvent event, String fxmlPath) {
-        try {
-            Parent root = FXMLLoader.load(getClass().getResource(fxmlPath));
-            Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
-            stage.setScene(new Scene(root, stage.getWidth(), stage.getHeight()));
-        } catch (IOException e) {
-            e.printStackTrace(); // 👈 Stacktrace hier einfügen!
-            DialogUtil.showError("Fehler", "Fehler beim Laden der Ansicht: " + e.getMessage());
-        }
+        SceneUtil.switchScene(event, "/com/krouna/empfehlungsapp_javafx/role-selection-view.fxml");
     }
 
 }

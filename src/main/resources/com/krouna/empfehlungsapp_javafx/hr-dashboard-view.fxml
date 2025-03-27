@@ -35,8 +35,6 @@
                     <TableColumn fx:id="submittedAtColumn" text="Eingereicht" prefWidth="150"/>
                     <TableColumn fx:id="recommendedByColumn" text="Empfohlen von" />
                     <TableColumn fx:id="cvFileColumn" text="CV" />
-                    <TableColumn fx:id="coverLetterFileColumn" text="Anschreiben" />
-
                 </columns>
             </TableView>
         </VBox>
