@@ -10,9 +10,14 @@ import com.krouna.empfehlungsapp_javafx.util.UserSession;
 import javafx.collections.FXCollections;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
+import javafx.scene.Node;
+import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.stage.Stage;
+
 import java.io.IOException;
 import java.net.URL;
 import java.util.ResourceBundle;
@@ -81,10 +86,25 @@ public class EmployeeDashboardController implements Initializable {
 
     @FXML
     private void handleNewRecommendation(ActionEvent event) {
-        System.out.println(getClass().getResource("/com/krouna/empfehlungsapp_javafx/employee-new-recommendation-view.fxml"));
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/krouna/empfehlungsapp_javafx/formular-recommendation-view.fxml"));
+            Scene scene = new Scene(loader.load());
+            ((Stage) ((Node) event.getSource()).getScene().getWindow()).setScene(scene);
+        } catch (IOException e) {
+            e.printStackTrace(); // <--- WICHTIG: Stacktrace!
+        }
 
-        SceneUtil.switchScene(event, "/com/krouna/empfehlungsapp_javafx/employee-new-recommendation-view.fxml");
+//        try {
+//            System.out.println("FXML wird geladen...");
+
+//            SceneUtil.switchScene(event, "/com/krouna/empfehlungsapp_javafx/formular-recommendation-view.fxml");
+//        } catch (Exception e) {
+//            System.err.println("FEHLER beim Laden der FXML:");
+//            e.printStackTrace();
+//            DialogUtil.showError("Fehler beim Laden", "Formular konnte nicht geladen werden.");
+//        }
     }
+
 
     @FXML
     private void handleLogout(ActionEvent event) {

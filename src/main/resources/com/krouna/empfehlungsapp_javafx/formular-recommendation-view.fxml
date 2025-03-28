@@ -13,10 +13,24 @@
 <?import java.lang.String?>
 <?import javafx.collections.FXCollections?>
 <?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.control.ScrollPane?>
 
 
-<VBox alignment="TOP_LEFT" spacing="10" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1">
- <padding>
+
+<ScrollPane xmlns="http://javafx.com/javafx/23" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.krouna.empfehlungsapp_javafx.controllers.EmployeeNewRecommendationController"
+            fitToWidth="true">
+    <content>
+        <VBox alignment="TOP_LEFT" spacing="10" >
+
+        <padding>
+                <Insets top="20" right="20" bottom="20" left="20"/>
+            </padding>
+
+
+
+    <padding>
       <Insets bottom="20.0" left="20.0" right="20.0" top="20.0" />
     </padding>
 
@@ -49,6 +63,7 @@
         </VBox>
 
 
+
     <HBox spacing="10">
         <VBox spacing="5">
             <Label text="Vorname:" />
@@ -74,8 +89,19 @@
 
     <VBox spacing="5">
         <Label text="Woher kennt ihr euch?" />
-        <TextField fx:id="knownFromField" prefWidth="478.4" />
+        <TextField fx:id="knownFromField" prefWidth="478.4" promptText="z.B. Projekt nterra, Uni, Bar, ..." />
     </VBox>
+
+      <HBox spacing="10">
+            <VBox spacing="5">
+                <Label text="Datum der Kontaktaufnahme:" />
+                <DatePicker fx:id="contactDatePicker" />
+            </VBox>
+            <VBox spacing="5">
+                <Label text="Zeitraum des Gesprächs:" />
+                <TextField fx:id="conversationPeriodField" promptText="z.B. 03/2024" />
+            </VBox>
+        </HBox>
 
  <VBox spacing="5">
      <Label text="Kontakt ist informiert zu:" />
@@ -106,7 +132,7 @@
 
          <VBox spacing="5">
              <Label text="Bevorzugte Rolle:" />
-             <ComboBox fx:id="preferredRoleComboBox">
+             <ComboBox fx:id="positionField">
                  <items>
                      <FXCollections fx:factory="observableArrayList">
                          <String fx:value="Junior Developer" />
@@ -173,20 +199,8 @@
 
         <!-- Checkbox für optionale Link-Eingabe -->
         <CheckBox fx:id="cvLinkToggle" text="Business-Profil-Link angeben" />
-        <TextField fx:id="cvLinkField" promptText="Business-Profil-Link eingeben" visible="false" />
+        <TextField fx:id="documentCvField" promptText="Business-Profil-Link eingeben" visible="false" />
   </VBox>
-
-
-    <HBox spacing="10">
-        <VBox spacing="5">
-            <Label text="Datum der Kontaktaufnahme:" />
-            <DatePicker fx:id="contactDatePicker" />
-        </VBox>
-        <VBox spacing="5">
-            <Label text="Zeitraum des Gesprächs:" />
-            <TextField fx:id="conversationPeriodField" promptText="z.B. 03/2024" />
-        </VBox>
-    </HBox>
 
     <VBox spacing="5">
         <Label text="Persönlichkeitstyp (D/I/S/G):" />
@@ -204,7 +218,7 @@
 
    <GridPane hgap="10" vgap="10">
        <columnConstraints>
-            <ColumnConstraints percentWidth="12.5"/>
+              <ColumnConstraints percentWidth="12.5"/>
               <ColumnConstraints percentWidth="12.5"/>
               <ColumnConstraints percentWidth="12.5"/>
               <ColumnConstraints percentWidth="12.5"/>
@@ -293,3 +307,7 @@
     <Button fx:id="submitButton" style="-fx-background-color: #4CAF50; -fx-text-fill: white;" text="Empfehlung abschicken" />
 
 </VBox>
+
+    </content>
+</ScrollPane>
+
