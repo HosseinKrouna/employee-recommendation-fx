@@ -90,17 +90,20 @@
 
     <VBox spacing="5">
         <Label text="Woher kennt ihr euch?" />
-        <TextField fx:id="knownFromField" prefWidth="478.4" promptText="z.B. Projekt nterra, Uni, Bar, ..." />
+        <HBox>
+        <TextArea fx:id="knownFromField"  prefRowCount="3" wrapText="true" prefWidth="400" promptText="z.B. Projekt nterra, Uni, Bar, ..." />
+        </HBox>
+
     </VBox>
 
       <HBox spacing="10">
             <VBox spacing="5">
-                <Label text="Datum der Kontaktaufnahme:" />
+                <Label text="Erstkontakt am:" />
                 <DatePicker fx:id="contactDatePicker" />
             </VBox>
             <VBox spacing="5">
-                <Label text="Zeitraum des Gesprächs:" />
-                <TextField fx:id="conversationPeriodField" promptText="z.B. 03/2024" />
+                <Label text="Überzeugt am:" />
+                <DatePicker fx:id="convincedCandidateDatePicker" />
             </VBox>
         </HBox>
 
@@ -187,25 +190,26 @@
               <FXCollections fx:factory="observableArrayList">
                   <String fx:value="CV hochladen" />
                   <String fx:value="CV per E-Mail" />
-                  <String fx:value="Link zum Business-Profil" />
               </FXCollections>
           </items>
       </ComboBox>
 
       <!-- CV Upload-Button (nur bei "CV hochladen") -->
-      <Button fx:id="uploadCvButton" text="CV hochladen" visible="false" />
+      <Button fx:id="uploadCvButton" onAction="#handleBrowseCV" text="CV hochladen" visible="false" />
 
       <!-- Info-Label bei "CV per E-Mail" -->
       <Label fx:id="cvByEmailLabel" text="Der Lebenslauf wird separat per E-Mail verschickt." visible="false" />
 
         <!-- Checkbox für optionale Link-Eingabe -->
         <CheckBox fx:id="cvLinkToggle" text="Business-Profil-Link angeben" />
-        <TextField fx:id="documentCvField" promptText="Business-Profil-Link eingeben" visible="false" />
+        <TextField fx:id="documentCvField" promptText="Xing, LinkedIn..." visible="false" />
   </VBox>
 
     <VBox spacing="5">
         <Label text="Persönlichkeitstyp DISG" />
-        <TextArea fx:id="personalityTypArea" prefRowCount="3" promptText="Beschreibe Charaktereigenschaft (D/I/S/G):" wrapText="true"  />
+        <HBox>
+        <TextArea fx:id="personalityTypArea" prefWidth="400" wrapText="true" prefRowCount="3" promptText="Beschreibe Charaktereigenschaft (D/I/S/G):" />
+        </HBox>
     </VBox>
 
   <GridPane hgap="10" vgap="10">
@@ -298,20 +302,26 @@
 
     <VBox spacing="5">
         <Label text="Charakter / Hobbys außerhalb vom Job:" />
-        <TextArea fx:id="hobbiesField" prefRowCount="3" promptText="Beschreibe Hobbys und Merkmale" wrapText="true" />
+        <HBox>
+        <TextArea fx:id="hobbiesField" prefRowCount="3" prefWidth="400" promptText="Beschreibe Hobbys und Merkmale" wrapText="true" />
+        </HBox>
     </VBox>
 
     <VBox spacing="5">
         <Label text="Projekterfahrung (sofern bekannt):" />
-        <TextArea fx:id="projectExperienceField" prefRowCount="3" promptText="Beschreibe bisherige Projekte" wrapText="true" />
+        <HBox>
+        <TextArea fx:id="projectExperienceField" prefRowCount="3" prefWidth="400" promptText="Beschreibe bisherige Projekte" wrapText="true" />
+        </HBox>
     </VBox>
 
     <VBox spacing="5">
             <Label text="Sonstiges:" />
-            <TextArea fx:id="miscellaneousField" prefRowCount="3" promptText="Gibt sonst noch was?" wrapText="true" />
+            <HBox>
+            <TextArea fx:id="miscellaneousField" prefRowCount="3" prefWidth="400" promptText="Gibt sonst noch was?" wrapText="true" />
+            </HBox>
         </VBox>
 
-    <Button fx:id="submitButton" style="-fx-background-color: #4CAF50; -fx-text-fill: white;" text="Empfehlung abschicken" />
+    <Button fx:id="submitButton" onAction="#handleSaveRecommendation" style="-fx-background-color: #4CAF50; -fx-text-fill: white;" text="Empfehlung abschicken" />
  <Button onAction="#handleBack" text="Zurück" />
 
 </VBox>
