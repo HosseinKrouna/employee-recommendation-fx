@@ -25,6 +25,7 @@ public class EmployeeNewRecommendationController {
     @FXML private TextField candidateFirstnameField;
     @FXML private TextField candidateLastnameField;
     @FXML private TextField emailField;
+    @FXML private Label emailFeedbackLabel;
     @FXML private TextField phoneField;
     @FXML private TextArea knownFromField;
     @FXML private DatePicker contactDatePicker;
@@ -146,6 +147,7 @@ public class EmployeeNewRecommendationController {
         initializeSkillFields();
         initializeUIControls();
         initializeDatePickers();
+        initializeEmailValidator();
 
         FocusTraversHelper.cancelFocusTravers(scrollPane.getContent());
     }
@@ -155,6 +157,10 @@ public class EmployeeNewRecommendationController {
         fieldValidators.setupDecimalField(experienceYearsField, 0.0, 99.9, "Berufserfahrung in Jahren");
         fieldValidators.setupNumericField(salaryExpectationField, 1, 500000, "Gehalt");
         fieldValidators.setupNumericField(travelWillingnessField, 0, 100, "Reisebereitschaft");
+    }
+
+    private void initializeEmailValidator() {
+        fieldValidators.setupEmailField(emailField, emailFeedbackLabel);
     }
 
     private void initializeSkillFields() {

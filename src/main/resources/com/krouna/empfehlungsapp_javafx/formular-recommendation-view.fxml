@@ -49,19 +49,23 @@
             </ComboBox>
         </VBox>
 
-        <VBox fx:id="currentPositionBox" spacing="5" visible="false" managed="false">
-            <Label text="Aktuelle Position:" />
-            <TextField fx:id="currentPositionField" />
-            <Label text="Karrierelevel:" />
-            <TextField fx:id="currentCareerLevelField" promptText="z.B. Entry-Level / Junior, Mid-Level / Professional, Senior-Level" />
-        </VBox>
 
-        <VBox fx:id="lastPositionBox" spacing="5" visible="false" managed="false">
-            <Label text="Letzte Position:" />
-            <TextField fx:id="lastPositionField" />
-            <Label text="Karrierelevel:" />
-            <TextField fx:id="lastCareerLevelField"  promptText="z.B. Entry-Level / Junior, Mid-Level / Professional, Senior-Level"/>
-        </VBox>
+   <HBox spacing="20">
+     <VBox fx:id="currentPositionBox" spacing="10" visible="false" managed="false">
+        <Label text="Aktuelle Position:" />
+        <TextField fx:id="currentPositionField" prefWidth="300" />
+        <Label text="Karrierelevel:" />
+        <TextField fx:id="currentCareerLevelField" prefWidth="300" promptText="z.B. Entry-Level / Mid-Level / Senior-Level" />
+     </VBox>
+
+     <VBox fx:id="lastPositionBox" spacing="10" visible="false" managed="false">
+        <Label text="Letzte Position:" />
+        <TextField fx:id="lastPositionField" prefWidth="300" />
+        <Label text="Karrierelevel:" />
+        <TextField fx:id="lastCareerLevelField" prefWidth="300" promptText="z.B. Entry-Level / Mid-Level / Senior-Level"/>
+     </VBox>
+   </HBox>
+
 
 
 
@@ -81,6 +85,7 @@
         <VBox spacing="5">
             <Label text="E-Mail-Adresse:" />
             <TextField fx:id="emailField" />
+            <Label fx:id="emailFeedbackLabel" />
         </VBox>
         <VBox spacing="5">
             <Label text="Handynummer:" />
