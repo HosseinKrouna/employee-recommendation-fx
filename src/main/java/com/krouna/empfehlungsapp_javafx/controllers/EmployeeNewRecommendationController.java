@@ -2,14 +2,13 @@ package com.krouna.empfehlungsapp_javafx.controllers;
 
 import com.krouna.empfehlungsapp_javafx.dto.RecommendationRequestDTO;
 import com.krouna.empfehlungsapp_javafx.services.BackendService;
-import com.krouna.empfehlungsapp_javafx.util.DialogUtil;
-import com.krouna.empfehlungsapp_javafx.util.MultipartUtils;
-import com.krouna.empfehlungsapp_javafx.util.SceneUtil;
-import com.krouna.empfehlungsapp_javafx.util.UserSession;
+import com.krouna.empfehlungsapp_javafx.util.*;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 
@@ -26,6 +25,9 @@ public class EmployeeNewRecommendationController {
 //    private TextField positionField;
 //    @FXML
 //    private TextField documentCvField;
+
+    @FXML
+    private ScrollPane scrollPane; // ScrollPane im FXML
 
     @FXML private TextField emailField;
     @FXML private TextField phoneField;
@@ -68,15 +70,18 @@ public class EmployeeNewRecommendationController {
     @FXML private TextField documentCvField;
 
     // Persönlichkeitstyp
-    @FXML private ComboBox<String> personalityTypeCombo;
+    @FXML private TextArea personalityTypArea;
 
-    // Skills (Beispiele)
+    // --- Backend
     @FXML private CheckBox javaCheckBox;
     @FXML private TextField javaPercentField;
     @FXML private CheckBox springCheckBox;
     @FXML private TextField springPercentField;
     @FXML private CheckBox backendOtherCheckBox;
     @FXML private TextField backendOtherPercentField;
+    @FXML private TextField backendOtherNameField;
+
+    // --- Frontend
     @FXML private CheckBox angularCheckBox;
     @FXML private TextField angularPercentField;
     @FXML private CheckBox reactCheckBox;
@@ -85,18 +90,27 @@ public class EmployeeNewRecommendationController {
     @FXML private TextField vuePercentField;
     @FXML private CheckBox frontendOtherCheckBox;
     @FXML private TextField frontendOtherPercentField;
+    @FXML private TextField frontendOtherNameField;
+
+    // --- Datenbanken
     @FXML private CheckBox sqlCheckBox;
     @FXML private TextField sqlPercentField;
     @FXML private CheckBox mongoCheckBox;
     @FXML private TextField mongoPercentField;
     @FXML private CheckBox databaseOtherCheckBox;
     @FXML private TextField databaseOtherPercentField;
+    @FXML private TextField databaseOtherNameField;
+
+    // --- Buildsysteme
     @FXML private CheckBox mavenCheckBox;
     @FXML private TextField mavenPercentField;
     @FXML private CheckBox gradleCheckBox;
     @FXML private TextField gradlePercentField;
     @FXML private CheckBox buildOtherCheckBox;
     @FXML private TextField buildOtherPercentField;
+    @FXML private TextField buildOtherNameField;
+
+    // --- CI/CD Tools
     @FXML private CheckBox jenkinsCheckBox;
     @FXML private TextField jenkinsPercentField;
     @FXML private CheckBox azureCheckBox;
@@ -105,6 +119,8 @@ public class EmployeeNewRecommendationController {
     @FXML private TextField bambooPercentField;
     @FXML private CheckBox cicdOtherCheckBox;
     @FXML private TextField cicdOtherPercentField;
+    @FXML private TextField cicdOtherNameField;
+
 
     // Weitere individuelle Skills
     @FXML private VBox customSkillsContainer;
@@ -113,6 +129,7 @@ public class EmployeeNewRecommendationController {
     // Textfelder für freie Eingaben
     @FXML private TextArea hobbiesField;
     @FXML private TextArea projectExperienceField;
+    @FXML private TextArea miscellaneousField;
 
     // Submit-Button
     @FXML private Button submitButton;
@@ -124,6 +141,20 @@ public class EmployeeNewRecommendationController {
 
     @FXML
     private void initialize() {
+
+        FocusTraversHelper.cancelFocusTravers(scrollPane.getContent());
+
+        // Hier kannst du sicherstellen, dass die FXML-Elemente initialisiert sind
+        if (scrollPane == null) {
+            System.out.println("ScrollPane ist null!");
+        } else {
+            System.out.println("ScrollPane wurde erfolgreich geladen.");
+        }
+
+        System.out.println("cicdOtherCheckBox = " + cicdOtherCheckBox);
+        System.out.println("backendOtherCheckBox = " + backendOtherCheckBox);
+        System.out.println("buildOtherCheckBox = " + buildOtherCheckBox);
+
         System.out.println("Initialize wurde aufgerufen!");
 
         // 1. Positionen für ComboBox "preferredRoleComboBox" setzen
@@ -148,23 +179,28 @@ public class EmployeeNewRecommendationController {
         });
 
         // 3. Checkbox-Logik für Skill-Prozentfelder
-        setupSkillCheckbox(javaCheckBox, javaPercentField);
-        setupSkillCheckbox(springCheckBox, springPercentField);
-        setupSkillCheckbox(backendOtherCheckBox, backendOtherPercentField);
-        setupSkillCheckbox(angularCheckBox, angularPercentField);
-        setupSkillCheckbox(reactCheckBox, reactPercentField);
-        setupSkillCheckbox(vueCheckBox, vuePercentField);
-        setupSkillCheckbox(frontendOtherCheckBox, frontendOtherPercentField);
-        setupSkillCheckbox(sqlCheckBox, sqlPercentField);
-        setupSkillCheckbox(mongoCheckBox, mongoPercentField);
-        setupSkillCheckbox(databaseOtherCheckBox, databaseOtherPercentField);
-        setupSkillCheckbox(mavenCheckBox, mavenPercentField);
-        setupSkillCheckbox(gradleCheckBox, gradlePercentField);
-        setupSkillCheckbox(buildOtherCheckBox, buildOtherPercentField);
-        setupSkillCheckbox(jenkinsCheckBox, jenkinsPercentField);
-        setupSkillCheckbox(azureCheckBox, azurePercentField);
-        setupSkillCheckbox(bambooCheckBox, bambooPercentField);
-        setupSkillCheckbox(cicdOtherCheckBox, cicdOtherPercentField);
+        setupSkillCheckbox(javaCheckBox, javaPercentField, null);
+        setupSkillCheckbox(springCheckBox, springPercentField, null);
+        setupSkillCheckbox(backendOtherCheckBox, backendOtherPercentField, backendOtherNameField);
+
+        setupSkillCheckbox(angularCheckBox, angularPercentField, null);
+        setupSkillCheckbox(reactCheckBox, reactPercentField, null);
+        setupSkillCheckbox(vueCheckBox, vuePercentField, null);
+        setupSkillCheckbox(frontendOtherCheckBox, frontendOtherPercentField, frontendOtherNameField);
+
+        setupSkillCheckbox(sqlCheckBox, sqlPercentField, null);
+        setupSkillCheckbox(mongoCheckBox, mongoPercentField, null);
+        setupSkillCheckbox(databaseOtherCheckBox, databaseOtherPercentField, databaseOtherNameField);
+
+        setupSkillCheckbox(mavenCheckBox, mavenPercentField, null);
+        setupSkillCheckbox(gradleCheckBox, gradlePercentField, null);
+        setupSkillCheckbox(buildOtherCheckBox, buildOtherPercentField, buildOtherNameField);
+
+        setupSkillCheckbox(jenkinsCheckBox, jenkinsPercentField, null);
+        setupSkillCheckbox(azureCheckBox, azurePercentField, null);
+        setupSkillCheckbox(bambooCheckBox, bambooPercentField, null);
+        setupSkillCheckbox(cicdOtherCheckBox, cicdOtherPercentField, cicdOtherNameField);
+
 
         // 4. CV-Wahl-Logik
         cvChoiceCombo.setOnAction(e -> {
@@ -177,24 +213,85 @@ public class EmployeeNewRecommendationController {
         cvLinkToggle.setOnAction(e ->
                 documentCvField.setVisible(cvLinkToggle.isSelected())
         );
+
+        if (scrollPane == null) {
+            System.out.println("ScrollPane ist null! Prüfe FXML-Zuweisung.");
+        } else {
+            System.out.println("ScrollPane wurde erfolgreich geladen.");
+        }
     }
 
 
     @FXML
     private void handleAddCustomSkill(ActionEvent event) {
         System.out.println("➕ Skill hinzufügen gedrückt!");
-        // Beispielcode: ein neues Textfeld für einen Skill hinzufügen
+
+        TextField newSkillTechnologyField = new TextField();
+        newSkillTechnologyField.setPromptText("Technologie");
+
         TextField newSkillField = new TextField();
-        newSkillField.setPromptText("Neuer Skill");
-        customSkillsContainer.getChildren().add(newSkillField);
+        newSkillField.setPromptText("weiterer Skill");
+
+        TextField percentageField = new TextField();
+        percentageField.setPromptText("Kenntnisgrad (%)");
+
+        HBox skillEntry = new HBox(10);
+        skillEntry.getChildren().addAll(newSkillTechnologyField, newSkillField, percentageField);
+
+        Button deleteButton = new Button("Löschen");
+        deleteButton.setOnAction(e -> {
+            // Temporär ScrollPane deaktivieren
+            scrollPane.setDisable(true);
+
+            customSkillsContainer.getChildren().remove(skillEntry);
+
+            Platform.runLater(() -> {
+                scrollPane.setDisable(false);
+                // Wiederherstellen der Scroll-Position auf zuletzt bekannten Bereich
+                scrollPane.setVvalue(1); // oder gezielt ein Wert wie vorher
+            });
+        });
+
+
+        skillEntry.getChildren().add(deleteButton);
+        customSkillsContainer.getChildren().add(skillEntry);
     }
 
 
 
-    private void setupSkillCheckbox(CheckBox checkBox, TextField percentField) {
-        percentField.setVisible(false);
-        checkBox.setOnAction(e -> percentField.setVisible(checkBox.isSelected()));
+
+
+
+
+
+
+
+    private void setupSkillCheckbox(CheckBox checkBox, TextField nameField, TextField percentField) {
+        if (percentField != null) {
+            percentField.setVisible(false);
+        }
+        if (nameField != null) {
+            nameField.setVisible(false);
+        }
+
+        checkBox.setOnAction(e -> {
+            boolean selected = checkBox.isSelected();
+            if (percentField != null) {
+                percentField.setVisible(selected);
+                System.out.println("percentField sichtbar: " + selected);
+            }
+            if (nameField != null) {
+                nameField.setVisible(selected);
+                System.out.println("nameField sichtbar: " + selected);
+            }
+        });
+
+
+
     }
+
+
+
 
 
     @FXML

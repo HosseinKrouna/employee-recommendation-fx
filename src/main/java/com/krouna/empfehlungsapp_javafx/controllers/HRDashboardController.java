@@ -3,6 +3,7 @@ package com.krouna.empfehlungsapp_javafx.controllers;
 import com.krouna.empfehlungsapp_javafx.services.FileDownloadService;
 import com.krouna.empfehlungsapp_javafx.ui.cells.DownloadButtonTableCell;
 import com.krouna.empfehlungsapp_javafx.util.DialogUtil;
+import com.krouna.empfehlungsapp_javafx.util.SceneUtil;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -79,17 +80,8 @@ public class HRDashboardController implements Initializable {
 
     @FXML
     private void handleLogout(ActionEvent event) {
-        switchScene(event, "/com/krouna/empfehlungsapp_javafx/role-selection-view.fxml");
+        SceneUtil.switchScene(event, "/com/krouna/empfehlungsapp_javafx/role-selection-view.fxml");
     }
 
-    private void switchScene(ActionEvent event, String fxmlPath) {
-        try {
-            Parent root = FXMLLoader.load(getClass().getResource(fxmlPath));
-            Stage stage = (Stage)((Node)event.getSource()).getScene().getWindow();
-            stage.setScene(new Scene(root, stage.getWidth(), stage.getHeight()));
-        } catch (IOException e) {
-            DialogUtil.showError("Fehler", "Fehler beim Laden der Ansicht.");
-        }
-    }
 }
 

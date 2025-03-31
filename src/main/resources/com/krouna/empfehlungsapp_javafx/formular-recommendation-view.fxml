@@ -20,7 +20,8 @@
 
 <ScrollPane xmlns="http://javafx.com/javafx/23" xmlns:fx="http://javafx.com/fxml/1"
             fx:controller="com.krouna.empfehlungsapp_javafx.controllers.EmployeeNewRecommendationController"
-            fitToWidth="true">
+            fx:id="scrollPane"
+            fitToWidth="true" fitToHeight="true">
     <content>
         <VBox alignment="TOP_LEFT" spacing="10" >
 
@@ -52,14 +53,14 @@
             <Label text="Aktuelle Position:" />
             <TextField fx:id="currentPositionField" />
             <Label text="Karrierelevel:" />
-            <TextField fx:id="currentCareerLevelField" />
+            <TextField fx:id="currentCareerLevelField" promptText="z.B. Entry-Level / Junior, Mid-Level / Professional, Senior-Level" />
         </VBox>
 
         <VBox fx:id="lastPositionBox" spacing="5" visible="false" managed="false">
             <Label text="Letzte Position:" />
             <TextField fx:id="lastPositionField" />
             <Label text="Karrierelevel:" />
-            <TextField fx:id="lastCareerLevelField" />
+            <TextField fx:id="lastCareerLevelField"  promptText="z.B. Entry-Level / Junior, Mid-Level / Professional, Senior-Level"/>
         </VBox>
 
 
@@ -203,83 +204,84 @@
   </VBox>
 
     <VBox spacing="5">
-        <Label text="Persönlichkeitstyp (D/I/S/G):" />
-        <ComboBox fx:id="personalityTypeCombo">
-            <items>
-                <FXCollections fx:factory="observableArrayList">
-                    <java.lang.String fx:value="D" />
-                    <java.lang.String fx:value="I" />
-                    <java.lang.String fx:value="S" />
-                    <java.lang.String fx:value="G" />
-                </FXCollections>
-            </items>
-        </ComboBox>
+        <Label text="Persönlichkeitstyp DISG" />
+        <TextArea fx:id="personalityTypArea" prefRowCount="3" promptText="Beschreibe Charaktereigenschaft (D/I/S/G):" wrapText="true"  />
     </VBox>
 
-   <GridPane hgap="10" vgap="10">
-       <columnConstraints>
-              <ColumnConstraints percentWidth="12.5"/>
-              <ColumnConstraints percentWidth="12.5"/>
-              <ColumnConstraints percentWidth="12.5"/>
-              <ColumnConstraints percentWidth="12.5"/>
-              <ColumnConstraints percentWidth="12.5"/>
-              <ColumnConstraints percentWidth="12.5"/>
-              <ColumnConstraints percentWidth="12.5"/>
-              <ColumnConstraints percentWidth="12.5"/>
-       </columnConstraints>
-   
-       <Label text="Technologie-Skills (mit Kenntnisstand in %):" style="-fx-font-weight: bold;" GridPane.columnSpan="6" />
-   
-       <!-- Backend -->
-       <Label text="Backend:" style="-fx-font-weight: bold;" GridPane.rowIndex="1" GridPane.columnSpan="6" />
-       <CheckBox fx:id="javaCheckBox" text="Java" GridPane.rowIndex="2" GridPane.columnIndex="0"/>
-       <TextField fx:id="javaPercentField" promptText="Kenntnisgrad (%)" prefWidth="60" visible="false" GridPane.rowIndex="2" GridPane.columnIndex="1"/>
-       <CheckBox fx:id="springCheckBox" text="Spring" GridPane.rowIndex="2" GridPane.columnIndex="2"/>
-       <TextField fx:id="springPercentField" promptText="Kenntnisgrad (%)" prefWidth="60" visible="false" GridPane.rowIndex="2" GridPane.columnIndex="3"/>
-       <CheckBox fx:id="backendOtherCheckBox" text="Andere" GridPane.rowIndex="2" GridPane.columnIndex="4"/>
-       <TextField fx:id="backendOtherPercentField" promptText="Kenntnisgrad (%)" prefWidth="60" visible="false" GridPane.rowIndex="2" GridPane.columnIndex="5"/>
-   
-       <!-- Frontend -->
-       <Label text="Frontend:" style="-fx-font-weight: bold;" GridPane.rowIndex="3" GridPane.columnSpan="6" />
-       <CheckBox fx:id="angularCheckBox" text="Angular" GridPane.rowIndex="4" GridPane.columnIndex="0"/>
-       <TextField fx:id="angularPercentField" promptText="Kenntnisgrad (%)" prefWidth="60" visible="false" GridPane.rowIndex="4" GridPane.columnIndex="1"/>
-       <CheckBox fx:id="reactCheckBox" text="React" GridPane.rowIndex="4" GridPane.columnIndex="2"/>
-       <TextField fx:id="reactPercentField" promptText="Kenntnisgrad (%)" prefWidth="60" visible="false" GridPane.rowIndex="4" GridPane.columnIndex="3"/>
-       <CheckBox fx:id="vueCheckBox" text="Vue.js" GridPane.rowIndex="4" GridPane.columnIndex="4"/>
-       <TextField fx:id="vuePercentField" promptText="Kenntnisgrad (%)" prefWidth="60" visible="false" GridPane.rowIndex="4" GridPane.columnIndex="5"/>
-       <CheckBox fx:id="frontendOtherCheckBox" text="Andere" GridPane.rowIndex="4" GridPane.columnIndex="6"/>
-       <TextField fx:id="frontendOtherPercentField" promptText="Kenntnisgrad (%)" prefWidth="60" visible="false" GridPane.rowIndex="4" GridPane.columnIndex="7"/>
+  <GridPane hgap="10" vgap="10">
+      <columnConstraints>
+          <ColumnConstraints percentWidth="8.5"/>
+          <ColumnConstraints percentWidth="8.5"/>
+          <ColumnConstraints percentWidth="8.5"/>
+          <ColumnConstraints percentWidth="8.5"/>
+          <ColumnConstraints percentWidth="8.5"/>
+          <ColumnConstraints percentWidth="8.5"/>
+          <ColumnConstraints percentWidth="8.5"/>
+          <ColumnConstraints percentWidth="8.5"/>
+          <ColumnConstraints percentWidth="8.5"/>
+      </columnConstraints>
+
+      <Label text="Skill-Skills (mit Kenntnisstand in %):" style="-fx-font-weight: bold;" GridPane.columnSpan="6" />
+
+      <!-- Backend -->
+      <Label text="Backend:" style="-fx-font-weight: bold;" GridPane.rowIndex="1" GridPane.columnSpan="7" />
+      <CheckBox fx:id="javaCheckBox" text="Java" GridPane.rowIndex="2" GridPane.columnIndex="0"/>
+      <TextField fx:id="javaPercentField" promptText="Kenntnisgrad (%)" visible="false" GridPane.rowIndex="2" GridPane.columnIndex="1"/>
+      <CheckBox fx:id="springCheckBox" text="Spring" GridPane.rowIndex="2" GridPane.columnIndex="2"/>
+      <TextField fx:id="springPercentField" promptText="Kenntnisgrad (%)" visible="false" GridPane.rowIndex="2" GridPane.columnIndex="3"/>
+      <CheckBox fx:id="backendOtherCheckBox" text="Andere" GridPane.rowIndex="2" GridPane.columnIndex="4"/>
+      <TextField fx:id="backendOtherNameField" promptText="Skill" visible="false" GridPane.rowIndex="2" GridPane.columnIndex="5"/>
+      <TextField fx:id="backendOtherPercentField" promptText="Kenntnisgrad (%)" visible="false" GridPane.rowIndex="2" GridPane.columnIndex="6"/>
 
 
-       <!-- Datenbanken -->
-       <Label text="Datenbanken:" style="-fx-font-weight: bold;" GridPane.rowIndex="5" GridPane.columnSpan="6" />
-       <CheckBox fx:id="sqlCheckBox" text="SQL" GridPane.rowIndex="6" GridPane.columnIndex="0"/>
-       <TextField fx:id="sqlPercentField" promptText="Kenntnisgrad (%)" prefWidth="60" visible="false" GridPane.rowIndex="6" GridPane.columnIndex="1"/>
-       <CheckBox fx:id="mongoCheckBox" text="MongoDB" GridPane.rowIndex="6" GridPane.columnIndex="2"/>
-       <TextField fx:id="mongoPercentField" promptText="Kenntnisgrad (%)" prefWidth="60" visible="false" GridPane.rowIndex="6" GridPane.columnIndex="3"/>
-       <CheckBox fx:id="databaseOtherCheckBox" text="Andere" GridPane.rowIndex="6" GridPane.columnIndex="4"/>
-       <TextField fx:id="databaseOtherPercentField" promptText="Kenntnisgrad (%)" prefWidth="60" visible="false" GridPane.rowIndex="6" GridPane.columnIndex="5"/>
-   
-       <!-- Buildsysteme -->
-       <Label text="Buildsysteme:" style="-fx-font-weight: bold;" GridPane.rowIndex="7" GridPane.columnSpan="6" />
-       <CheckBox fx:id="mavenCheckBox" text="Maven" GridPane.rowIndex="8" GridPane.columnIndex="0"/>
-       <TextField fx:id="mavenPercentField" promptText="Kenntnisgrad (%)" prefWidth="60" visible="false" GridPane.rowIndex="8" GridPane.columnIndex="1"/>
-       <CheckBox fx:id="gradleCheckBox" text="Gradle" GridPane.rowIndex="8" GridPane.columnIndex="2"/>
-       <TextField fx:id="gradlePercentField" promptText="Kenntnisgrad (%)" prefWidth="60" visible="false" GridPane.rowIndex="8" GridPane.columnIndex="3"/>
-       <CheckBox fx:id="buildOtherCheckBox" text="Andere" GridPane.rowIndex="8" GridPane.columnIndex="4"/>
-       <TextField fx:id="buildOtherPercentField" promptText="Kenntnisgrad (%)" prefWidth="60" visible="false" GridPane.rowIndex="8" GridPane.columnIndex="5"/>
-   
-       <!-- CI/CD Tools -->
-       <Label text="CI/CD-Tools:" style="-fx-font-weight: bold;" GridPane.rowIndex="9" GridPane.columnSpan="6" />
-       <CheckBox fx:id="jenkinsCheckBox" text="Jenkins" GridPane.rowIndex="10" GridPane.columnIndex="0"/>
-       <TextField fx:id="jenkinsPercentField" promptText="Kenntnisgrad (%)" prefWidth="60" visible="false" GridPane.rowIndex="10" GridPane.columnIndex="1"/>
-       <CheckBox fx:id="azureCheckBox" text="Azure" GridPane.rowIndex="10" GridPane.columnIndex="2"/>
-       <TextField fx:id="azurePercentField" promptText="Kenntnisgrad (%)" prefWidth="60" visible="false" GridPane.rowIndex="10" GridPane.columnIndex="3"/>
-       <CheckBox fx:id="bambooCheckBox" text="Bamboo" GridPane.rowIndex="10" GridPane.columnIndex="4"/>
-       <TextField fx:id="bambooPercentField" promptText="Kenntnisgrad (%)" prefWidth="60" visible="false" GridPane.rowIndex="10" GridPane.columnIndex="5"/>
-       <CheckBox fx:id="cicdOtherCheckBox" text="Andere" GridPane.rowIndex="10" GridPane.columnIndex="6"/>
-       <TextField fx:id="cicdOtherPercentField" promptText="Kenntnisgrad (%)" prefWidth="60" visible="false" GridPane.rowIndex="11" GridPane.columnIndex="1"/>
-   </GridPane>
+      <!-- Frontend -->
+      <Label text="Frontend:" style="-fx-font-weight: bold;" GridPane.rowIndex="3" GridPane.columnSpan="7" />
+      <CheckBox fx:id="angularCheckBox" text="Angular" GridPane.rowIndex="4" GridPane.columnIndex="0"/>
+      <TextField fx:id="angularPercentField" promptText="Kenntnisgrad (%)" visible="false" GridPane.rowIndex="4" GridPane.columnIndex="1"/>
+      <CheckBox fx:id="reactCheckBox" text="React" GridPane.rowIndex="4" GridPane.columnIndex="2"/>
+      <TextField fx:id="reactPercentField" promptText="Kenntnisgrad (%)" visible="false" GridPane.rowIndex="4" GridPane.columnIndex="3"/>
+      <CheckBox fx:id="vueCheckBox" text="Vue.js" GridPane.rowIndex="4" GridPane.columnIndex="4"/>
+      <TextField fx:id="vuePercentField" promptText="Kenntnisgrad (%)" visible="false" GridPane.rowIndex="4" GridPane.columnIndex="5"/>
+      <CheckBox fx:id="frontendOtherCheckBox" text="Andere" GridPane.rowIndex="4" GridPane.columnIndex="6"/>
+      <TextField fx:id="frontendOtherNameField" promptText="Skill" visible="false" GridPane.rowIndex="4" GridPane.columnIndex="7"/>
+      <TextField fx:id="frontendOtherPercentField" promptText="Kenntnisgrad (%)" visible="false" GridPane.rowIndex="4" GridPane.columnIndex="8"/>
+
+
+      <!-- Datenbanken -->
+      <Label text="Datenbanken:" style="-fx-font-weight: bold;" GridPane.rowIndex="6" GridPane.columnSpan="6" />
+      <CheckBox fx:id="sqlCheckBox" text="SQL" GridPane.rowIndex="7" GridPane.columnIndex="0"/>
+      <TextField fx:id="sqlPercentField" promptText="Kenntnisgrad (%)" visible="false" GridPane.rowIndex="7" GridPane.columnIndex="1"/>
+      <CheckBox fx:id="mongoCheckBox" text="MongoDB" GridPane.rowIndex="7" GridPane.columnIndex="2"/>
+      <TextField fx:id="mongoPercentField" promptText="Kenntnisgrad (%)" visible="false" GridPane.rowIndex="7" GridPane.columnIndex="3"/>
+      <CheckBox fx:id="databaseOtherCheckBox" text="Andere" GridPane.rowIndex="7" GridPane.columnIndex="4"/>
+       <TextField fx:id="databaseOtherNameField" promptText="Skill" visible="false" GridPane.rowIndex="7" GridPane.columnIndex="5"/>
+      <TextField fx:id="databaseOtherPercentField" promptText="Kenntnisgrad (%)" visible="false" GridPane.rowIndex="7" GridPane.columnIndex="6"/>
+
+
+      <!-- Buildsysteme -->
+      <Label text="Buildsysteme:" style="-fx-font-weight: bold;" GridPane.rowIndex="8" GridPane.columnSpan="6" />
+      <CheckBox fx:id="mavenCheckBox" text="Maven" GridPane.rowIndex="9" GridPane.columnIndex="0"/>
+      <TextField fx:id="mavenPercentField" promptText="Kenntnisgrad (%)" visible="false" GridPane.rowIndex="9" GridPane.columnIndex="1"/>
+      <CheckBox fx:id="gradleCheckBox" text="Gradle" GridPane.rowIndex="9" GridPane.columnIndex="2"/>
+      <TextField fx:id="gradlePercentField" promptText="Kenntnisgrad (%)" visible="false" GridPane.rowIndex="9" GridPane.columnIndex="3"/>
+      <CheckBox fx:id="buildOtherCheckBox" text="Andere" GridPane.rowIndex="9" GridPane.columnIndex="4"/>
+      <TextField fx:id="buildOtherNameField" promptText="Skill" visible="false" GridPane.rowIndex="9" GridPane.columnIndex="5"/>
+      <TextField fx:id="buildOtherPercentField" promptText="Kenntnisgrad (%)" visible="false" GridPane.rowIndex="9" GridPane.columnIndex="6"/>
+
+
+      <!-- CI/CD Tools -->
+      <Label text="CI/CD-Tools:" style="-fx-font-weight: bold;" GridPane.rowIndex="10" GridPane.columnSpan="6" />
+      <CheckBox fx:id="jenkinsCheckBox" text="Jenkins" GridPane.rowIndex="11" GridPane.columnIndex="0"/>
+      <TextField fx:id="jenkinsPercentField" promptText="Kenntnisgrad (%)" visible="false" GridPane.rowIndex="11" GridPane.columnIndex="1"/>
+      <CheckBox fx:id="azureCheckBox" text="Azure" GridPane.rowIndex="11" GridPane.columnIndex="2"/>
+      <TextField fx:id="azurePercentField" promptText="Kenntnisgrad (%)" visible="false" GridPane.rowIndex="11" GridPane.columnIndex="3"/>
+      <CheckBox fx:id="bambooCheckBox" text="Bamboo" GridPane.rowIndex="11" GridPane.columnIndex="4"/>
+      <TextField fx:id="bambooPercentField" promptText="Kenntnisgrad (%)" visible="false" GridPane.rowIndex="11" GridPane.columnIndex="5"/>
+      <CheckBox fx:id="cicdOtherCheckBox" text="Andere" GridPane.rowIndex="11" GridPane.columnIndex="6"/>
+      <TextField fx:id="cicdOtherNameField" promptText="Skill" visible="false" GridPane.rowIndex="11" GridPane.columnIndex="7"/>
+      <TextField fx:id="cicdOtherPercentField" promptText="Kenntnisgrad (%)" visible="false" GridPane.rowIndex="11" GridPane.columnIndex="8"/>
+     </GridPane>
+
 
 <Label text="Weitere individuelle Skills:" style="-fx-font-weight: bold;" GridPane.rowIndex="12" GridPane.columnSpan="8" />
 
@@ -304,7 +306,13 @@
         <TextArea fx:id="projectExperienceField" prefRowCount="3" promptText="Beschreibe bisherige Projekte" wrapText="true" />
     </VBox>
 
+    <VBox spacing="5">
+            <Label text="Sonstiges:" />
+            <TextArea fx:id="miscellaneousField" prefRowCount="3" promptText="Gibt sonst noch was?" wrapText="true" />
+        </VBox>
+
     <Button fx:id="submitButton" style="-fx-background-color: #4CAF50; -fx-text-fill: white;" text="Empfehlung abschicken" />
+ <Button onAction="#handleBack" text="Zurück" />
 
 </VBox>
 
