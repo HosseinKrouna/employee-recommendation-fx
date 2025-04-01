@@ -3,26 +3,18 @@ package com.krouna.empfehlungsapp_javafx.controllers;
 import com.krouna.empfehlungsapp_javafx.dto.RecommendationRequestDTO;
 import com.krouna.empfehlungsapp_javafx.services.BackendService;
 import com.krouna.empfehlungsapp_javafx.util.*;
-import com.krouna.empfehlungsapp_javafx.util.FieldValidators;
-import com.krouna.empfehlungsapp_javafx.util.DateValidators;
-import com.krouna.empfehlungsapp_javafx.util.SkillFieldManager;
-import com.krouna.empfehlungsapp_javafx.util.FormBuilder;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.geometry.Bounds;
-import javafx.scene.Node;
 import javafx.scene.control.*;
-import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
-
 import java.io.File;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
+
+
+
 
 public class EmployeeNewRecommendationController {
 
@@ -73,8 +65,11 @@ public class EmployeeNewRecommendationController {
     @FXML private TextField documentCvField;
     @FXML private TextArea personalityTypArea;
 
-    // Skill checkboxes and percentage fields (organized by type)
-    // Backend
+    // Skill checkboxes and percentage fields
+    @FXML private VBox customSkillsContainer;
+    @FXML private Button addSkillButton;
+
+    // Backend skills
     @FXML private CheckBox javaCheckBox;
     @FXML private TextField javaPercentField;
     @FXML private CheckBox springCheckBox;
@@ -83,7 +78,7 @@ public class EmployeeNewRecommendationController {
     @FXML private TextField backendOtherPercentField;
     @FXML private TextField backendOtherNameField;
 
-    // Frontend
+    // Frontend skills
     @FXML private CheckBox angularCheckBox;
     @FXML private TextField angularPercentField;
     @FXML private CheckBox reactCheckBox;
@@ -94,7 +89,7 @@ public class EmployeeNewRecommendationController {
     @FXML private TextField frontendOtherPercentField;
     @FXML private TextField frontendOtherNameField;
 
-    // Database
+    // Database skills
     @FXML private CheckBox sqlCheckBox;
     @FXML private TextField sqlPercentField;
     @FXML private CheckBox mongoCheckBox;
@@ -103,7 +98,7 @@ public class EmployeeNewRecommendationController {
     @FXML private TextField databaseOtherPercentField;
     @FXML private TextField databaseOtherNameField;
 
-    // Build
+    // Build skills
     @FXML private CheckBox mavenCheckBox;
     @FXML private TextField mavenPercentField;
     @FXML private CheckBox gradleCheckBox;
@@ -112,7 +107,7 @@ public class EmployeeNewRecommendationController {
     @FXML private TextField buildOtherPercentField;
     @FXML private TextField buildOtherNameField;
 
-    // CI/CD
+    // CI/CD skills
     @FXML private CheckBox jenkinsCheckBox;
     @FXML private TextField jenkinsPercentField;
     @FXML private CheckBox azureCheckBox;
@@ -124,70 +119,62 @@ public class EmployeeNewRecommendationController {
     @FXML private TextField cicdOtherNameField;
 
     // Additional fields
-    @FXML private VBox customSkillsContainer;
-    @FXML private Button addSkillButton;
     @FXML private TextArea hobbiesField;
     @FXML private TextArea projectExperienceField;
     @FXML private TextArea miscellaneousField;
     @FXML private Button submitButton;
 
     private final BackendService backendService = new BackendService();
+    private final FormValidator formValidator = new FormValidator();
     private String uploadedCvFilename;
 
     // Service classes
     private SkillFieldManager skillFieldManager;
-    private DateValidators dateValidators;
-    private FieldValidators fieldValidators;
+    private DateValidators dateValidator;
     private FormBuilder formBuilder;
-
-    private final List<TextInputControl> requiredTextFields = new ArrayList<>();
-    private final List<ComboBox<?>> requiredComboBoxes = new ArrayList<>();
-
 
     @FXML
     private void initialize() {
+        initializeRequiredFields();
+        initializeServices();
+        initializeUIComponents();
+        FocusTraversHelper.cancelFocusTravers(scrollPane.getContent());
+    }
 
-        requiredTextFields.add(candidateFirstnameField);
-        requiredTextFields.add(candidateLastnameField);
+    private void initializeRequiredFields() {
+        formValidator.addRequiredTextField(candidateFirstnameField);
+        formValidator.addRequiredTextField(candidateLastnameField);
+        formValidator.addRequiredComboBox(positionField);
+    }
 
-        requiredComboBoxes.add(positionField);
-
-
-        // Initialize service classes
+    private void initializeServices() {
         skillFieldManager = new SkillFieldManager();
-        dateValidators = new DateValidators();
-        fieldValidators = new FieldValidators();
+        dateValidator = new DateValidators();
         formBuilder = new FormBuilder(customSkillsContainer, scrollPane);
+    }
 
+    private void initializeUIComponents() {
         initializeValidators();
         initializeSkillFields();
-        initializeUIControls();
+        initializeComboBoxes();
         initializeDatePickers();
-        initializeEmailValidator();
-
-        FocusTraversHelper.cancelFocusTravers(scrollPane.getContent());
     }
 
     private void initializeValidators() {
         // Setup validators for numeric fields
-        fieldValidators.setupDecimalField(experienceYearsField, 0.0, 99.9, "Berufserfahrung in Jahren");
-        fieldValidators.setupNumericField(salaryExpectationField, 1, 500000, "Gehalt");
-        fieldValidators.setupNumericField(travelWillingnessField, 0, 100, "Reisebereitschaft");
-    }
-
-    private void initializeEmailValidator() {
-        fieldValidators.setupEmailField(emailField, emailFeedbackLabel);
+        formValidator.setupDecimalField(experienceYearsField, 0.0, 99.9, "Berufserfahrung in Jahren");
+        formValidator.setupNumericField(salaryExpectationField, 1, 500000, "Gehalt");
+        formValidator.setupNumericField(travelWillingnessField, 0, 100, "Reisebereitschaft");
+        formValidator.setupEmailField(emailField, emailFeedbackLabel);
     }
 
     private void initializeSkillFields() {
-        // Create mapping of skill fields
         Map<CheckBox, TextField[]> skillFields = createSkillFieldsMap();
 
-        // Initialize all skill fields
         skillFields.forEach((checkbox, fields) -> {
             skillFieldManager.setupSkillCheckbox(checkbox, fields[0], fields[1]);
             if (fields[0] != null) {
-                fieldValidators.setupNumericField(fields[0], 0, 100, "Kenntnisgrad (%)");
+                formValidator.setupNumericField(fields[0], 0, 100, "Kenntnisgrad (%)");
             }
         });
     }
@@ -195,37 +182,37 @@ public class EmployeeNewRecommendationController {
     private Map<CheckBox, TextField[]> createSkillFieldsMap() {
         Map<CheckBox, TextField[]> skillFields = new HashMap<>();
 
-        // Backend skills
-        skillFields.put(javaCheckBox, new TextField[]{javaPercentField, null});
-        skillFields.put(springCheckBox, new TextField[]{springPercentField, null});
-        skillFields.put(backendOtherCheckBox, new TextField[]{backendOtherPercentField, backendOtherNameField});
+        // Map all skill checkboxes to their corresponding percentage and name fields
+        addSkillMapping(skillFields, javaCheckBox, javaPercentField, null);
+        addSkillMapping(skillFields, springCheckBox, springPercentField, null);
+        addSkillMapping(skillFields, backendOtherCheckBox, backendOtherPercentField, backendOtherNameField);
 
-        // Frontend skills
-        skillFields.put(angularCheckBox, new TextField[]{angularPercentField, null});
-        skillFields.put(reactCheckBox, new TextField[]{reactPercentField, null});
-        skillFields.put(vueCheckBox, new TextField[]{vuePercentField, null});
-        skillFields.put(frontendOtherCheckBox, new TextField[]{frontendOtherPercentField, frontendOtherNameField});
+        addSkillMapping(skillFields, angularCheckBox, angularPercentField, null);
+        addSkillMapping(skillFields, reactCheckBox, reactPercentField, null);
+        addSkillMapping(skillFields, vueCheckBox, vuePercentField, null);
+        addSkillMapping(skillFields, frontendOtherCheckBox, frontendOtherPercentField, frontendOtherNameField);
 
-        // Database skills
-        skillFields.put(sqlCheckBox, new TextField[]{sqlPercentField, null});
-        skillFields.put(mongoCheckBox, new TextField[]{mongoPercentField, null});
-        skillFields.put(databaseOtherCheckBox, new TextField[]{databaseOtherPercentField, databaseOtherNameField});
+        addSkillMapping(skillFields, sqlCheckBox, sqlPercentField, null);
+        addSkillMapping(skillFields, mongoCheckBox, mongoPercentField, null);
+        addSkillMapping(skillFields, databaseOtherCheckBox, databaseOtherPercentField, databaseOtherNameField);
 
-        // Build skills
-        skillFields.put(mavenCheckBox, new TextField[]{mavenPercentField, null});
-        skillFields.put(gradleCheckBox, new TextField[]{gradlePercentField, null});
-        skillFields.put(buildOtherCheckBox, new TextField[]{buildOtherPercentField, buildOtherNameField});
+        addSkillMapping(skillFields, mavenCheckBox, mavenPercentField, null);
+        addSkillMapping(skillFields, gradleCheckBox, gradlePercentField, null);
+        addSkillMapping(skillFields, buildOtherCheckBox, buildOtherPercentField, buildOtherNameField);
 
-        // CI/CD skills
-        skillFields.put(jenkinsCheckBox, new TextField[]{jenkinsPercentField, null});
-        skillFields.put(azureCheckBox, new TextField[]{azurePercentField, null});
-        skillFields.put(bambooCheckBox, new TextField[]{bambooPercentField, null});
-        skillFields.put(cicdOtherCheckBox, new TextField[]{cicdOtherPercentField, cicdOtherNameField});
+        addSkillMapping(skillFields, jenkinsCheckBox, jenkinsPercentField, null);
+        addSkillMapping(skillFields, azureCheckBox, azurePercentField, null);
+        addSkillMapping(skillFields, bambooCheckBox, bambooPercentField, null);
+        addSkillMapping(skillFields, cicdOtherCheckBox, cicdOtherPercentField, cicdOtherNameField);
 
         return skillFields;
     }
 
-    private void initializeUIControls() {
+    private void addSkillMapping(Map<CheckBox, TextField[]> map, CheckBox checkbox, TextField percentField, TextField nameField) {
+        map.put(checkbox, new TextField[]{percentField, nameField});
+    }
+
+    private void initializeComboBoxes() {
         // Setup position field
         positionField.getItems().addAll(
                 "Junior Developer", "Mid-Level Developer", "Senior Developer", "Team Lead", "Architekt"
@@ -252,17 +239,18 @@ public class EmployeeNewRecommendationController {
 
     private void initializeDatePickers() {
         // Setup date validation
-        dateValidators.setupDateValidation(contactDatePicker, "Erstkontakt-Datum", true);
-        dateValidators.setupDateValidation(convincedCandidateDatePicker, "Überzeugt-Datum", true);
-        dateValidators.setupDateValidation(noticePeriodDatePicker, "Kündigungsfrist", false);
-        dateValidators.setupDateValidation(startDatePicker, "Startdatum", false);
+        dateValidator.setupDateValidation(contactDatePicker, "Erstkontakt-Datum", true);
+        dateValidator.setupDateValidation(convincedCandidateDatePicker, "Überzeugt-Datum", true);
+        dateValidator.setupDateValidation(noticePeriodDatePicker, "Kündigungsfrist", false);
+        dateValidator.setupDateValidation(startDatePicker, "Startdatum", false);
 
         // Setup date dependencies
-        dateValidators.setupDateDependency(contactDatePicker, convincedCandidateDatePicker,
+        dateValidator.setupDateDependency(contactDatePicker, convincedCandidateDatePicker,
                 "Kontakt-Datum", "Überzeugt-Datum");
-        dateValidators.setupDateDependency(contactDatePicker, startDatePicker,
+        dateValidator.setupDateDependency(contactDatePicker, startDatePicker,
                 "Kontakt-Datum", "Startdatum");
-        dateValidators.setupStartAndNoticeDependency(startDatePicker, noticePeriodDatePicker);
+        dateValidator.setupDateDependency(noticePeriodDatePicker, startDatePicker,
+                "Kündigungsfrist", "Startdatum");
     }
 
     @FXML
@@ -272,105 +260,74 @@ public class EmployeeNewRecommendationController {
 
     @FXML
     private void handleBrowseCV(ActionEvent event) {
+        File selectedFile = selectCVFile();
+        if (selectedFile != null) {
+            uploadCV(selectedFile);
+        }
+    }
+
+    private File selectCVFile() {
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle("CV auswählen");
         fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("PDF", "*.pdf"));
-        File selectedFile = fileChooser.showOpenDialog(null);
+        return fileChooser.showOpenDialog(null);
+    }
 
-        if (selectedFile != null) {
-            MultipartUtils.uploadFile(selectedFile, savedFilename -> Platform.runLater(() -> {
-                documentCvField.setText(savedFilename);
-                uploadedCvFilename = savedFilename;
-            }));
-        }
+    private void uploadCV(File file) {
+        MultipartUtils.uploadFile(file, savedFilename -> Platform.runLater(() -> {
+            documentCvField.setText(savedFilename);
+            uploadedCvFilename = savedFilename;
+        }));
     }
 
     @FXML
     private void handleSaveRecommendation(ActionEvent event) {
-        if (!validateRequiredFields()) {
-            return; // abbrechen, Formular nicht senden
+        if (!formValidator.validateForm(scrollPane)) {
+            return;
         }
 
         RecommendationRequestDTO dto = createRecommendationDTO();
+        submitRecommendation(event, dto);
+    }
 
+    private void submitRecommendation(ActionEvent event, RecommendationRequestDTO dto) {
         backendService.submitRecommendation(dto)
-                .thenAccept(response -> {
-                    if (response.statusCode() == 201 || response.statusCode() == 200) {
-                        Platform.runLater(() -> {
-                            DialogUtil.showInfo("Erfolg", "Empfehlung erfolgreich gespeichert!");
-                            SceneUtil.switchScene(event, "/com/krouna/empfehlungsapp_javafx/employee-dashboard-view.fxml", 0.8);
-                        });
-                    } else {
-                        Platform.runLater(() -> DialogUtil.showError("Fehler", "Fehler beim Speichern!"));
-                    }
-                })
-                .exceptionally(e -> {
-                    e.printStackTrace();
-                    Platform.runLater(() -> DialogUtil.showError("Fehler", "Fehler bei der Anfrage!"));
-                    return null;
-                });
+                .thenApply(response -> new HttpResponse(response.statusCode(), response.body()))
+                .thenAccept(response -> handleSubmissionResponse(event, response))
+                .exceptionally(e -> handleSubmissionError(e));
     }
 
-
-    private boolean validateRequiredFields() {
-        List<Control> missing = new ArrayList<>();
-
-        for (TextInputControl field : requiredTextFields) {
-            if (field.getText().isBlank()) {
-                field.setStyle("-fx-border-color: red; -fx-border-width: 2px;");
-                missing.add(field);
-            } else {
-                field.setStyle(""); // Reset
-            }
-        }
-
-        for (ComboBox<?> comboBox : requiredComboBoxes) {
-            if (comboBox.getValue() == null) {
-                comboBox.setStyle("-fx-border-color: red; -fx-border-width: 2px;");
-                missing.add(comboBox);
-            } else {
-                comboBox.setStyle(""); // Reset
-            }
-        }
-
-        if (!missing.isEmpty()) {
-            Control firstInvalid = missing.get(0);
+    private void handleSubmissionResponse(ActionEvent event, HttpResponse response) {
+        if (response.isSuccess()) {
             Platform.runLater(() -> {
-                firstInvalid.requestFocus();
-                scrollToNode(firstInvalid); // Wenn du das hast
+                DialogUtil.showConfirmation("Erfolg", "Empfehlung erfolgreich gespeichert!");
+                SceneUtil.switchScene(event, "/com/krouna/empfehlungsapp_javafx/employee-dashboard-view.fxml", 0.8);
             });
-            return false;
-        }
-
-        return true;
-    }
-
-
-
-    private void markInvalid(Control field) {
-        field.setStyle("-fx-border-color: red; -fx-border-width: 2px;");
-    }
-
-
-
-    private void scrollToNode(Node node) {
-        if (scrollPane == null) return;
-        Node content = scrollPane.getContent();
-        if (content != null) {
-            Bounds contentBounds = content.localToScene(content.getBoundsInLocal());
-            Bounds nodeBounds = node.localToScene(node.getBoundsInLocal());
-
-            double y = nodeBounds.getMinY() - contentBounds.getMinY();
-            double vvalue = y / (contentBounds.getHeight() - scrollPane.getViewportBounds().getHeight());
-            scrollPane.setVvalue(Math.min(Math.max(vvalue, 0), 1)); // Clamp zwischen 0 und 1
+        } else {
+            Platform.runLater(() -> DialogUtil.showError("Fehler", "Fehler beim Speichern!"));
         }
     }
 
+    private Void handleSubmissionError(Throwable e) {
+        e.printStackTrace();
+        Platform.runLater(() -> DialogUtil.showError("Fehler", "Fehler bei der Anfrage!"));
+        return null;
+    }
 
     private RecommendationRequestDTO createRecommendationDTO() {
         RecommendationRequestDTO dto = new RecommendationRequestDTO();
 
-        // Basic information
+        setBasicInfo(dto);
+        setEmploymentInfo(dto);
+        setInformationStatus(dto);
+        setCareerDetails(dto);
+        setCVDetails(dto);
+        setAdditionalInfo(dto);
+
+        return dto;
+    }
+
+    private void setBasicInfo(RecommendationRequestDTO dto) {
         dto.setUserId(UserSession.getInstance().getUserId());
         dto.setCandidateFirstname(candidateFirstnameField.getText().trim());
         dto.setCandidateLastname(candidateLastnameField.getText().trim());
@@ -379,15 +336,17 @@ public class EmployeeNewRecommendationController {
         dto.setKnownFrom(knownFromField.getText().trim());
         dto.setContactDate(contactDatePicker.getValue());
         dto.setConvincedCandidateDate(convincedCandidateDatePicker.getValue());
+    }
 
-        // Employment status
+    private void setEmploymentInfo(RecommendationRequestDTO dto) {
         dto.setEmploymentStatus(employmentStatusCombo.getValue());
         dto.setCurrentPosition(currentPositionField.getText().trim());
         dto.setCurrentCareerLevel(currentCareerLevelField.getText().trim());
         dto.setLastPosition(lastPositionField.getText().trim());
         dto.setLastCareerLevel(lastCareerLevelField.getText().trim());
+    }
 
-        // Information checkboxes
+    private void setInformationStatus(RecommendationRequestDTO dto) {
         dto.setInformedPosition(informedPositionCheck.isSelected());
         dto.setInformedTasks(informedTasksCheck.isSelected());
         dto.setInformedRequirements(informedRequirementsCheck.isSelected());
@@ -396,8 +355,9 @@ public class EmployeeNewRecommendationController {
         dto.setInformedTraining(informedTrainingCheck.isSelected());
         dto.setInformedCoach(informedCoachCheck.isSelected());
         dto.setInformedRoles(informedRolesCheck.isSelected());
+    }
 
-        // Career details
+    private void setCareerDetails(RecommendationRequestDTO dto) {
         String experienceText = experienceYearsField.getText().trim().replace(",", ".");
         dto.setExperienceYears(experienceText.isEmpty() ? null : Double.parseDouble(experienceText));
         dto.setPosition(positionField.getValue());
@@ -410,17 +370,19 @@ public class EmployeeNewRecommendationController {
 
         String travelText = travelWillingnessField.getText().trim();
         dto.setTravelWillingness(travelText.isEmpty() ? null : Integer.parseInt(travelText));
+    }
 
-        // CV and additional information
+    private void setCVDetails(RecommendationRequestDTO dto) {
         dto.setCvChoice(cvChoiceCombo.getValue());
         dto.setDocumentCvPath(uploadedCvFilename);
         dto.setCvLink(documentCvField.getText().trim());
+    }
+
+    private void setAdditionalInfo(RecommendationRequestDTO dto) {
         dto.setPersonalityType(personalityTypArea.getText().trim());
         dto.setHobbies(hobbiesField.getText().trim());
         dto.setProjectExperience(projectExperienceField.getText().trim());
         dto.setMiscellaneous(miscellaneousField.getText().trim());
-
-        return dto;
     }
 
     @FXML
