@@ -26,6 +26,7 @@
      <TableColumn fx:id="statusColumn" text="Status" prefWidth="100" />
      <TableColumn fx:id="submittedAtColumn" text="Eingereicht am" prefWidth="150" />
      <TableColumn fx:id="cvFileColumn" text="CV" />
+     <TableColumn fx:id="pdfFileColumn" text="PDF" />
    </columns>
  </TableView>
 

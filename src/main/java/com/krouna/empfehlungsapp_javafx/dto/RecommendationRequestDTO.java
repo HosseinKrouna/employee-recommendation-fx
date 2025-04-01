@@ -11,6 +11,7 @@ public class RecommendationRequestDTO {
     private String candidateLastname;
     private String position;
     private String documentCvPath;
+    private String documentPdfPath;
 
     // --- Kontakt & Kennenlernen ---
     private String email;
@@ -97,6 +98,14 @@ public class RecommendationRequestDTO {
 
     public String getDocumentCvPath() { return documentCvPath; }
     public void setDocumentCvPath(String documentCvPath) { this.documentCvPath = documentCvPath; }
+
+    public String getDocumentPdfPath() {
+        return documentPdfPath;
+    }
+
+    public void setDocumentPdfPath(String documentPdfPath) {
+        this.documentPdfPath = documentPdfPath;
+    }
 
     public String getEmail() {
         return email;

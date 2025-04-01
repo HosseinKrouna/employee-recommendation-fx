@@ -8,28 +8,39 @@ import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 
+import java.util.function.Consumer;
+
 public class DownloadButtonTableCell extends TableCell<RecommendationDTO, String> {
     private final Button downloadButton = new Button();
     private final FileDownloadService downloadService;
+    private final Consumer<RecommendationDTO> downloadAction;
 
-    public DownloadButtonTableCell(FileDownloadService downloadService) {
+    /**
+     * @param downloadService Der Service, der den Download ausführt.
+     * @param downloadAction  Eine Aktion, die das RecommendationDTO entgegennimmt
+     *                        und den entsprechenden Download auslöst.
+     */
+    public DownloadButtonTableCell(FileDownloadService downloadService, Consumer<RecommendationDTO> downloadAction) {
         this.downloadService = downloadService;
+        this.downloadAction = downloadAction;
+
+        // Icon laden
         ImageView icon = new ImageView(new Image(getClass().getResourceAsStream("/images/pdf-icon.png")));
         icon.setFitWidth(16);
         icon.setFitHeight(16);
         downloadButton.setGraphic(icon);
-        downloadButton.setStyle("-fx-background-color: transparent; -fx-cursor: hand;");
-        Tooltip.install(downloadButton, new Tooltip("PDF herunterladen"));
 
+        // Stil und Tooltip
         downloadButton.setStyle("-fx-background-color: transparent; -fx-cursor: hand;");
+        Tooltip.install(downloadButton, new Tooltip("Download"));
+
         downloadButton.setOnMouseEntered(e -> downloadButton.setStyle("-fx-background-color: #e0e0e0; -fx-cursor: hand;"));
         downloadButton.setOnMouseExited(e -> downloadButton.setStyle("-fx-background-color: transparent; -fx-cursor: hand;"));
 
+        // Beim Klick wird die übergebene Action ausgeführt
         downloadButton.setOnAction(e -> {
-            String filePath = getItem();
-            if (filePath != null && !filePath.isBlank()) {
-                downloadService.downloadFile(filePath);
-            }
+            RecommendationDTO recommendation = getTableView().getItems().get(getIndex());
+            downloadAction.accept(recommendation);
         });
     }
 
@@ -39,4 +50,3 @@ public class DownloadButtonTableCell extends TableCell<RecommendationDTO, String
         setGraphic(empty || item == null || item.isBlank() ? null : downloadButton);
     }
 }
-

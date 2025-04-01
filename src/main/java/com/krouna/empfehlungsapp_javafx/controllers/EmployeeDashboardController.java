@@ -10,13 +10,9 @@ import com.krouna.empfehlungsapp_javafx.util.UserSession;
 import javafx.collections.FXCollections;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
-import javafx.scene.Node;
-import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
-import javafx.stage.Stage;
 
 import java.io.IOException;
 import java.net.URL;
@@ -46,6 +42,9 @@ public class EmployeeDashboardController implements Initializable {
     private TableColumn<RecommendationDTO, String> submittedAtColumn;
     @FXML
     private TableColumn<RecommendationDTO, String> cvFileColumn;
+    @FXML
+    private TableColumn<RecommendationDTO, String> pdfFileColumn;
+
 
     private final BackendService backendService = new BackendService();
     private final FileDownloadService fileDownloadService = new FileDownloadService();
@@ -65,8 +64,17 @@ public class EmployeeDashboardController implements Initializable {
         setupColumn(statusColumn, "status");
         setupColumn(submittedAtColumn, "submittedAt");
         setupColumn(cvFileColumn, "documentCvPath");
+        setupColumn(pdfFileColumn, "documentPdfPath");
 
-        cvFileColumn.setCellFactory(col -> new DownloadButtonTableCell(fileDownloadService));
+        // CV-Spalte bleibt wie gehabt:
+        cvFileColumn.setCellFactory(col -> new DownloadButtonTableCell(fileDownloadService,
+                recommendation -> fileDownloadService.downloadFile(recommendation.getDocumentCvPath())));
+
+// Für die PDF-Spalte: Hier wird die neue Methode aufgerufen
+        pdfFileColumn.setCellFactory(col -> new DownloadButtonTableCell(fileDownloadService,
+                recommendation -> fileDownloadService.downloadGeneratedFile(recommendation.getDocumentPdfPath())));
+
+
     }
 
     private <T> void setupColumn(TableColumn<RecommendationDTO, T> column, String propertyName) {
@@ -86,7 +94,7 @@ public class EmployeeDashboardController implements Initializable {
 
     @FXML
     private void handleNewRecommendation(ActionEvent event) {
-            SceneUtil.switchScene(event, "/com/krouna/empfehlungsapp_javafx/formular-recommendation-view.fxml", 0.8);
+        SceneUtil.switchScene(event, "/com/krouna/empfehlungsapp_javafx/formular-recommendation-view.fxml", 0.8);
     }
 
 
