@@ -86,23 +86,7 @@ public class EmployeeDashboardController implements Initializable {
 
     @FXML
     private void handleNewRecommendation(ActionEvent event) {
-        try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/krouna/empfehlungsapp_javafx/formular-recommendation-view.fxml"));
-            Scene scene = new Scene(loader.load());
-            ((Stage) ((Node) event.getSource()).getScene().getWindow()).setScene(scene);
-        } catch (IOException e) {
-            e.printStackTrace(); // <--- WICHTIG: Stacktrace!
-        }
-
-//        try {
-//            System.out.println("FXML wird geladen...");
-
-//            SceneUtil.switchScene(event, "/com/krouna/empfehlungsapp_javafx/formular-recommendation-view.fxml");
-//        } catch (Exception e) {
-//            System.err.println("FEHLER beim Laden der FXML:");
-//            e.printStackTrace();
-//            DialogUtil.showError("Fehler beim Laden", "Formular konnte nicht geladen werden.");
-//        }
+            SceneUtil.switchScene(event, "/com/krouna/empfehlungsapp_javafx/formular-recommendation-view.fxml", 0.8);
     }
 
 

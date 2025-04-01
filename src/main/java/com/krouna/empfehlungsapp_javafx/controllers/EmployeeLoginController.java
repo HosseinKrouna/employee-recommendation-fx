@@ -29,7 +29,7 @@ public class EmployeeLoginController {
                 Platform.runLater(() -> userDataOpt.ifPresentOrElse(userData -> {
                     UserSession.getInstance().setUserId(userData.getId());
                     UserSession.getInstance().setUsername(userData.getUsername());
-                    SceneUtil.switchScene(event, "/com/krouna/empfehlungsapp_javafx/employee-dashboard-view.fxml");
+                    SceneUtil.switchScene(event, "/com/krouna/empfehlungsapp_javafx/employee-dashboard-view.fxml", 0.8);
                 }, () -> {
                     errorLabel.setText("Ungültige Anmeldedaten!");
                 }))

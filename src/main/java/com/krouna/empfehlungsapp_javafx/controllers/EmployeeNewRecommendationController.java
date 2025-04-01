@@ -362,6 +362,6 @@ public class EmployeeNewRecommendationController {
 
     @FXML
     private void handleBack(ActionEvent event) {
-        SceneUtil.switchScene(event, "/com/krouna/empfehlungsapp_javafx/employee-dashboard-view.fxml");
+        SceneUtil.switchScene(event, "/com/krouna/empfehlungsapp_javafx/employee-dashboard-view.fxml", 0.8);
     }
 }

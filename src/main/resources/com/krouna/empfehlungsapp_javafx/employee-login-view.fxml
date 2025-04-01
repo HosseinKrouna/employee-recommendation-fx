@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.PasswordField?>
@@ -8,28 +7,26 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
 
-<VBox xmlns="http://javafx.com/javafx/21"
-      xmlns:fx="http://javafx.com/fxml/1"
-      fx:controller="com.krouna.empfehlungsapp_javafx.controllers.EmployeeLoginController"
-      spacing="15" alignment="CENTER">
-    <padding>
-        <Insets top="20" right="20" bottom="20" left="20"/>
-    </padding>
-
-    <Label text="Mitarbeiter Login" style="-fx-font-size: 18px; -fx-font-weight: bold;" />
+<VBox alignment="CENTER" prefHeight="377.0" prefWidth="352.0" spacing="15" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.krouna.empfehlungsapp_javafx.controllers.EmployeeLoginController">
 
 
-       <!-- Error Label zum Anzeigen von Fehlermeldungen -->
-        <Label fx:id="errorLabel" textFill="red"/>
+    <Label style="-fx-font-size: 18px; -fx-font-weight: bold;" text="Mitarbeiter Login" />
+   <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0">
+      <children>
+         <VBox alignment="CENTER" prefHeight="100.0" prefWidth="254.0" spacing="10.0">
+            <children>
+            
+                      <TextField fx:id="usernameField" prefHeight="26.0" prefWidth="198.0" promptText="Benutzername" />
+                <PasswordField fx:id="passwordField" prefWidth="100.0" promptText="Passwort" />
+            </children>
+         </VBox>
+      </children>
+   </HBox>
 
-    <TextField fx:id="usernameField" promptText="Benutzername" />
-    <PasswordField fx:id="passwordField" promptText="Passwort" />
-
-    <HBox spacing="10" alignment="CENTER">
-        <Button text="Anmelden" onAction="#handleLogin" />
-        <Button text="Registrieren" onAction="#handleRegister" />
+    <HBox alignment="CENTER" spacing="10">
+        <Button onAction="#handleLogin" text="Anmelden" />
+        <Button onAction="#handleRegister" text="Registrieren" />
     </HBox>
 
-    <Button text="Zurück" onAction="#handleBack" />
+    <Button onAction="#handleBack" text="Zurück" />
 </VBox>
-
