@@ -10,14 +10,19 @@ import com.krouna.empfehlungsapp_javafx.util.FormBuilder;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.geometry.Bounds;
+import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 public class EmployeeNewRecommendationController {
 
@@ -135,8 +140,19 @@ public class EmployeeNewRecommendationController {
     private FieldValidators fieldValidators;
     private FormBuilder formBuilder;
 
+    private final List<TextInputControl> requiredTextFields = new ArrayList<>();
+    private final List<ComboBox<?>> requiredComboBoxes = new ArrayList<>();
+
+
     @FXML
     private void initialize() {
+
+        requiredTextFields.add(candidateFirstnameField);
+        requiredTextFields.add(candidateLastnameField);
+
+        requiredComboBoxes.add(positionField);
+
+
         // Initialize service classes
         skillFieldManager = new SkillFieldManager();
         dateValidators = new DateValidators();
@@ -271,7 +287,9 @@ public class EmployeeNewRecommendationController {
 
     @FXML
     private void handleSaveRecommendation(ActionEvent event) {
-        if (!isInputValid()) return;
+        if (!validateRequiredFields()) {
+            return; // abbrechen, Formular nicht senden
+        }
 
         RecommendationRequestDTO dto = createRecommendationDTO();
 
@@ -280,7 +298,7 @@ public class EmployeeNewRecommendationController {
                     if (response.statusCode() == 201 || response.statusCode() == 200) {
                         Platform.runLater(() -> {
                             DialogUtil.showInfo("Erfolg", "Empfehlung erfolgreich gespeichert!");
-                            SceneUtil.switchScene(event, "/com/krouna/empfehlungsapp_javafx/employee-dashboard-view.fxml");
+                            SceneUtil.switchScene(event, "/com/krouna/empfehlungsapp_javafx/employee-dashboard-view.fxml", 0.8);
                         });
                     } else {
                         Platform.runLater(() -> DialogUtil.showError("Fehler", "Fehler beim Speichern!"));
@@ -293,16 +311,61 @@ public class EmployeeNewRecommendationController {
                 });
     }
 
-    private boolean isInputValid() {
-        if (candidateFirstnameField.getText().trim().isEmpty() ||
-                candidateLastnameField.getText().trim().isEmpty() ||
-                positionField.getValue() == null ||
-                positionField.getValue().trim().isEmpty()) {
-            DialogUtil.showError("Validierungsfehler", "Bitte alle Pflichtfelder ausfüllen.");
+
+    private boolean validateRequiredFields() {
+        List<Control> missing = new ArrayList<>();
+
+        for (TextInputControl field : requiredTextFields) {
+            if (field.getText().isBlank()) {
+                field.setStyle("-fx-border-color: red; -fx-border-width: 2px;");
+                missing.add(field);
+            } else {
+                field.setStyle(""); // Reset
+            }
+        }
+
+        for (ComboBox<?> comboBox : requiredComboBoxes) {
+            if (comboBox.getValue() == null) {
+                comboBox.setStyle("-fx-border-color: red; -fx-border-width: 2px;");
+                missing.add(comboBox);
+            } else {
+                comboBox.setStyle(""); // Reset
+            }
+        }
+
+        if (!missing.isEmpty()) {
+            Control firstInvalid = missing.get(0);
+            Platform.runLater(() -> {
+                firstInvalid.requestFocus();
+                scrollToNode(firstInvalid); // Wenn du das hast
+            });
             return false;
         }
+
         return true;
     }
+
+
+
+    private void markInvalid(Control field) {
+        field.setStyle("-fx-border-color: red; -fx-border-width: 2px;");
+    }
+
+
+
+    private void scrollToNode(Node node) {
+        if (scrollPane == null) return;
+        Node content = scrollPane.getContent();
+        if (content != null) {
+            Bounds contentBounds = content.localToScene(content.getBoundsInLocal());
+            Bounds nodeBounds = node.localToScene(node.getBoundsInLocal());
+
+            double y = nodeBounds.getMinY() - contentBounds.getMinY();
+            double vvalue = y / (contentBounds.getHeight() - scrollPane.getViewportBounds().getHeight());
+            scrollPane.setVvalue(Math.min(Math.max(vvalue, 0), 1)); // Clamp zwischen 0 und 1
+        }
+    }
+
 
     private RecommendationRequestDTO createRecommendationDTO() {
         RecommendationRequestDTO dto = new RecommendationRequestDTO();
