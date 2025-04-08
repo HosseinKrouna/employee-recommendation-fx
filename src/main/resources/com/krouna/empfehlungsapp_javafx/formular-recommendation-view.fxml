@@ -15,6 +15,11 @@
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.ColumnConstraints?>
 <?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.control.Hyperlink?>
+
+
 
 
 
@@ -195,6 +200,13 @@
 
       <!-- CV Upload-Button (nur bei "CV hochladen") -->
       <Button fx:id="uploadCvButton" onAction="#handleBrowseCV" text="CV hochladen" visible="false" />
+
+   <HBox fx:id="cvPreviewBox" spacing="10" visible="false">
+       <ImageView fx:id="cvIcon" fitWidth="18" fitHeight="18" />
+       <Hyperlink fx:id="cvLink" onAction="#handleOpenUploadedCV" />
+       <Button text="✕" onAction="#handleRemoveCVPreview" />
+   </HBox>
+
 
       <!-- Info-Label bei "CV per E-Mail" -->
       <Label fx:id="cvByEmailLabel" text="CV wird separat per E-Mail verschickt." visible="false" />

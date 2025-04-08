@@ -8,9 +8,18 @@ import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
 import javafx.scene.control.*;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.control.ScrollPane;
+import javafx.scene.control.TextArea;
+import javafx.scene.control.TextField;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
+
+import java.awt.*;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -64,6 +73,10 @@ public class EmployeeNewRecommendationController {
     // CV fields
     @FXML private ComboBox<String> cvChoiceCombo;
     @FXML private Button uploadCvButton;
+    @FXML private HBox cvPreviewBox;
+    @FXML private ImageView cvIcon;
+    @FXML private Hyperlink cvLink;
+
     @FXML private Label cvByEmailLabel;
     @FXML private Label cvByBusinessLink;
     @FXML private CheckBox cvLinkToggle;
@@ -144,7 +157,11 @@ public class EmployeeNewRecommendationController {
         initializeServices();
         initializeUIComponents();
         FocusTraversHelper.cancelFocusTravers(scrollPane.getContent());
+        updateCvPreviewIfExists();
+
+
     }
+
 
     private void initializeRequiredFields() {
         formValidator.addRequiredTextField(candidateFirstnameField);
@@ -243,6 +260,13 @@ public class EmployeeNewRecommendationController {
             boolean isBusinessProfile = "CV im Business-Profil-Link enthalten".equals(selected);
             documentCvField.setVisible(isBusinessProfile);
             cvLinkToggle.setVisible(!isBusinessProfile);
+
+
+            if (!"CV hochladen".equals(selected)) {
+                uploadedCvFilename = null;
+                cvPreviewBox.setVisible(false);
+                documentCvField.clear();
+            }
         });
 
 
@@ -289,10 +313,59 @@ public class EmployeeNewRecommendationController {
 
     private void uploadCV(File file) {
         MultipartUtils.uploadFile(file, savedFilename -> Platform.runLater(() -> {
-            documentCvField.setText(savedFilename);
-            uploadedCvFilename = savedFilename;
+            documentCvField.setText(file.getAbsolutePath());
+            uploadedCvFilename = file.getAbsolutePath();
         }));
+        cvPreviewBox.setVisible(true);
+        cvIcon.setImage(new Image(getClass().getResourceAsStream("/images/pdf-icon.png")));
+        cvLink.setText(file.getName());
+
     }
+    @FXML
+    private void handleOpenUploadedCV(ActionEvent event) {
+        if (uploadedCvFilename == null || uploadedCvFilename.isBlank()) return;
+
+        try {
+            File pdf = new File(uploadedCvFilename);
+            if (pdf.exists()) {
+                Desktop.getDesktop().open(pdf);
+            } else {
+                DialogUtil.showError("Datei nicht gefunden", "Die hochgeladene Datei konnte nicht gefunden werden.");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            DialogUtil.showError("Fehler beim Öffnen", "Die Datei konnte nicht geöffnet werden.");
+        }
+    }
+
+
+    private void updateCvPreviewIfExists() {
+        String selected = cvChoiceCombo.getValue();
+        if (!"CV hochladen".equals(selected)) return;
+
+        String filePath = documentCvField.getText();
+        File file = new File(filePath);
+
+        if (file.exists()) {
+            cvIcon.setImage(new Image(getClass().getResourceAsStream("/images/pdf-icon.png")));
+            cvLink.setText(file.getName());
+            uploadedCvFilename = filePath;
+            cvPreviewBox.setVisible(true);
+        } else {
+            System.err.println("CV nicht gefunden: " + filePath);
+        }
+    }
+
+
+
+    @FXML
+    private void handleRemoveCVPreview(ActionEvent event) {
+        uploadedCvFilename = null;
+        documentCvField.clear();
+        cvPreviewBox.setVisible(false);
+    }
+
+
 
     @FXML
     private void handleSaveRecommendation(ActionEvent event) {
@@ -314,7 +387,7 @@ public class EmployeeNewRecommendationController {
     private void handleSubmissionResponse(ActionEvent event, HttpResponse response) {
         if (response.isSuccess()) {
             Platform.runLater(() -> {
-                DialogUtil.showConfirmation("Erfolg", "Empfehlung erfolgreich gespeichert!");
+                DialogUtil.showInfo("Erfolg", "Empfehlung erfolgreich gespeichert!");
                 SceneUtil.switchScene(event, "/com/krouna/empfehlungsapp_javafx/employee-dashboard-view.fxml", 0.8);
             });
         } else {
