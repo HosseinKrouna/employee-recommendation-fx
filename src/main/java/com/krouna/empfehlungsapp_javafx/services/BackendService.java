@@ -2,6 +2,8 @@ package com.krouna.empfehlungsapp_javafx.services;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.krouna.empfehlungsapp_javafx.dto.RecommendationDTO;
 import com.krouna.empfehlungsapp_javafx.dto.RecommendationRequestDTO;
 import com.krouna.empfehlungsapp_javafx.dto.UserDataDTO;
@@ -25,6 +27,8 @@ public class BackendService {
     public BackendService() {
         this.client = HttpClient.newHttpClient();
         this.objectMapper = new ObjectMapper();
+        objectMapper.registerModule(new JavaTimeModule());
+        objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
     }
 
     public CompletableFuture<HttpResponse<String>> login(String username, String password) {

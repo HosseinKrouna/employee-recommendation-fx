@@ -6,11 +6,15 @@ import com.krouna.empfehlungsapp_javafx.util.*;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.scene.Node;
 import javafx.scene.control.*;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 import java.io.File;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 
@@ -61,6 +65,7 @@ public class EmployeeNewRecommendationController {
     @FXML private ComboBox<String> cvChoiceCombo;
     @FXML private Button uploadCvButton;
     @FXML private Label cvByEmailLabel;
+    @FXML private Label cvByBusinessLink;
     @FXML private CheckBox cvLinkToggle;
     @FXML private TextField documentCvField;
     @FXML private TextArea personalityTypArea;
@@ -229,9 +234,18 @@ public class EmployeeNewRecommendationController {
         // Setup CV choice combo box
         cvChoiceCombo.setOnAction(e -> {
             String selected = cvChoiceCombo.getValue();
+
             uploadCvButton.setVisible("CV hochladen".equals(selected));
             cvByEmailLabel.setVisible("CV per E-Mail".equals(selected));
+            cvByBusinessLink.setVisible("CV im Business-Profil-Link enthalten".equals(selected));
+
+            // Direkt anzeigen
+            boolean isBusinessProfile = "CV im Business-Profil-Link enthalten".equals(selected);
+            documentCvField.setVisible(isBusinessProfile);
+            cvLinkToggle.setVisible(!isBusinessProfile);
         });
+
+
 
         // Setup CV link toggle
         cvLinkToggle.setOnAction(e -> documentCvField.setVisible(cvLinkToggle.isSelected()));
@@ -323,6 +337,7 @@ public class EmployeeNewRecommendationController {
         setCareerDetails(dto);
         setCVDetails(dto);
         setAdditionalInfo(dto);
+        setSkillDetails(dto);
 
         return dto;
     }
@@ -384,6 +399,102 @@ public class EmployeeNewRecommendationController {
         dto.setProjectExperience(projectExperienceField.getText().trim());
         dto.setMiscellaneous(miscellaneousField.getText().trim());
     }
+
+    private void setSkillDetails(RecommendationRequestDTO dto) {
+        dto.setBackendSkills(extractSkillsFromFields(
+                new SkillInput(javaCheckBox, javaPercentField),
+                new SkillInput(springCheckBox, springPercentField),
+                new SkillInput(backendOtherCheckBox, backendOtherPercentField, backendOtherNameField)
+        ));
+
+        dto.setFrontendSkills(extractSkillsFromFields(
+                new SkillInput(angularCheckBox, angularPercentField),
+                new SkillInput(reactCheckBox, reactPercentField),
+                new SkillInput(vueCheckBox, vuePercentField),
+                new SkillInput(frontendOtherCheckBox, frontendOtherPercentField, frontendOtherNameField)
+        ));
+
+        dto.setDatabaseSkills(extractSkillsFromFields(
+                new SkillInput(sqlCheckBox, sqlPercentField),
+                new SkillInput(mongoCheckBox, mongoPercentField),
+                new SkillInput(databaseOtherCheckBox, databaseOtherPercentField, databaseOtherNameField)
+        ));
+
+        dto.setBuildSkills(extractSkillsFromFields(
+                new SkillInput(mavenCheckBox, mavenPercentField),
+                new SkillInput(gradleCheckBox, gradlePercentField),
+                new SkillInput(buildOtherCheckBox, buildOtherPercentField, buildOtherNameField)
+        ));
+
+        dto.setCicdSkills(extractSkillsFromFields(
+                new SkillInput(jenkinsCheckBox, jenkinsPercentField),
+                new SkillInput(azureCheckBox, azurePercentField),
+                new SkillInput(bambooCheckBox, bambooPercentField),
+                new SkillInput(cicdOtherCheckBox, cicdOtherPercentField, cicdOtherNameField)
+        ));
+
+        dto.setCustomSkills(extractCustomSkills());
+
+    }
+
+    private List<RecommendationRequestDTO.SkillEntry> extractSkillsFromFields(SkillInput... skillInputs) {
+        List<RecommendationRequestDTO.SkillEntry> skills = new ArrayList<>();
+
+        for (SkillInput input : skillInputs) {
+            CheckBox checkBox = input.getCheckBox();
+            TextField percentField = input.getPercentField();
+            TextField nameField = input.getNameField();
+
+            String name = (nameField != null && nameField.isVisible() && !nameField.getText().isEmpty())
+                    ? nameField.getText().trim()
+                    : checkBox.getText();
+
+            int percentage = 0;
+            if (checkBox.isSelected() && !percentField.getText().isEmpty()) {
+                try {
+                    percentage = Integer.parseInt(percentField.getText().trim());
+                } catch (NumberFormatException e) {
+                    System.out.println("Ungültiger Prozentwert für Skill: " + name);
+                }
+            }
+
+            skills.add(new RecommendationRequestDTO.SkillEntry(name, percentage));
+        }
+
+        return skills;
+    }
+
+
+    private List<RecommendationRequestDTO.SkillEntry> extractCustomSkills() {
+        List<RecommendationRequestDTO.SkillEntry> skills = new ArrayList<>();
+
+        for (Node node : customSkillsContainer.getChildren()) {
+            if (node instanceof HBox hbox && hbox.getChildren().size() >= 3) {
+                TextField techField = (TextField) hbox.getChildren().get(0);
+                TextField nameField = (TextField) hbox.getChildren().get(1);
+                TextField percentField = (TextField) hbox.getChildren().get(2);
+
+                String tech = techField.getText().trim();
+                String name = nameField.getText().trim();
+                String percentText = percentField.getText().trim();
+
+                if (!name.isEmpty() && !percentText.isEmpty()) {
+                    try {
+                        int percentage = Integer.parseInt(percentText);
+                        skills.add(new RecommendationRequestDTO.SkillEntry(name, percentage, tech));
+                    } catch (NumberFormatException e) {
+                        System.out.println("Ungültiger Prozentwert bei Custom-Skill: " + percentText);
+                    }
+                }
+            }
+        }
+
+        return skills;
+    }
+
+
+
+
 
     @FXML
     private void handleBack(ActionEvent event) {

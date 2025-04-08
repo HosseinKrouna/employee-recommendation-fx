@@ -188,6 +188,7 @@
               <FXCollections fx:factory="observableArrayList">
                   <String fx:value="CV hochladen" />
                   <String fx:value="CV per E-Mail" />
+                  <String fx:value="CV im Business-Profil-Link enthalten" />
               </FXCollections>
           </items>
       </ComboBox>
@@ -196,19 +197,16 @@
       <Button fx:id="uploadCvButton" onAction="#handleBrowseCV" text="CV hochladen" visible="false" />
 
       <!-- Info-Label bei "CV per E-Mail" -->
-      <Label fx:id="cvByEmailLabel" text="Der Lebenslauf wird separat per E-Mail verschickt." visible="false" />
+      <Label fx:id="cvByEmailLabel" text="CV wird separat per E-Mail verschickt." visible="false" />
+
+ <!-- Info-Label bei "CV im Business-Profil-Link enthalten" -->
+      <Label fx:id="cvByBusinessLink" text="CV ist im Business-Profil enthalten." visible="false" />
 
         <!-- Checkbox für optionale Link-Eingabe -->
         <CheckBox fx:id="cvLinkToggle" text="Business-Profil-Link angeben" />
         <TextField fx:id="documentCvField" promptText="Xing, LinkedIn..." visible="false" />
   </VBox>
 
-    <VBox spacing="5">
-        <Label text="Persönlichkeitstyp DISG" />
-        <HBox>
-        <TextArea fx:id="personalityTypArea" prefWidth="400" wrapText="true" prefRowCount="3" promptText="Beschreibe Charaktereigenschaft (D/I/S/G):" />
-        </HBox>
-    </VBox>
 
   <GridPane hgap="10" vgap="10">
       <columnConstraints>
@@ -296,7 +294,12 @@
 
 
 
-
+    <VBox spacing="5">
+        <Label text="Persönlichkeitstyp DISG" />
+        <HBox>
+        <TextArea fx:id="personalityTypArea" prefWidth="400" wrapText="true" prefRowCount="3" promptText="Beschreibe Charaktereigenschaft (D/I/S/G):" />
+        </HBox>
+    </VBox>
 
     <VBox spacing="5">
         <Label text="Charakter / Hobbys außerhalb vom Job:" />

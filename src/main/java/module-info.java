@@ -7,9 +7,10 @@ module com.krouna.empfehlungsapp_javafx {
     requires com.dlsc.formsfx;
     requires org.kordamp.bootstrapfx.core;
     requires org.apache.httpcomponents.client5.httpclient5;
-    requires com.fasterxml.jackson.databind;
     requires org.apache.httpcomponents.core5.httpcore5;
     requires java.net.http;
+    requires com.fasterxml.jackson.datatype.jsr310;
+    requires com.fasterxml.jackson.databind;
 
     exports com.krouna.empfehlungsapp_javafx.dto;
 
