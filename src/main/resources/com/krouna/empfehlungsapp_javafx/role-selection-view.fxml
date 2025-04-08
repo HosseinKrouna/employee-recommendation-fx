@@ -4,7 +4,7 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Text?>
 
-<VBox alignment="CENTER" spacing="15" xmlns="http://javafx.com/javafx/21"
+<VBox alignment="CENTER" prefHeight="377.0" prefWidth="352.0" spacing="15" xmlns="http://javafx.com/javafx/21"
       xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="com.krouna.empfehlungsapp_javafx.controllers.RoleSelectionController">
 

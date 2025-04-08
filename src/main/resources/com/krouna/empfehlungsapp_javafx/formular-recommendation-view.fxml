@@ -1,0 +1,332 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.CheckBox?>
+<?import javafx.scene.control.DatePicker?>
+<?import javafx.scene.control.Button?>
+<?import javafx.geometry.Insets?>
+<?import java.lang.String?>
+<?import javafx.collections.FXCollections?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.control.ScrollPane?>
+
+
+
+<ScrollPane xmlns="http://javafx.com/javafx/23" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.krouna.empfehlungsapp_javafx.controllers.EmployeeNewRecommendationController"
+            fx:id="scrollPane"
+            fitToWidth="true" fitToHeight="true">
+      <padding>
+          <Insets top="10" right="10" bottom="10" left="10"/>
+      </padding>
+  <content>
+     <VBox alignment="TOP_LEFT" spacing="10" >
+
+    <Label style="-fx-font-size: 18; -fx-font-weight: bold;" text="Datenerfassung Kandidat" />
+
+      <VBox spacing="5">
+            <Label text="Kandidatensituation:" />
+            <ComboBox fx:id="employmentStatusCombo">
+                <items>
+                    <FXCollections fx:factory="observableArrayList">
+                        <java.lang.String fx:value="In Anstellung" />
+                        <java.lang.String fx:value="Arbeitsuchend" />
+                    </FXCollections>
+                </items>
+            </ComboBox>
+        </VBox>
+
+
+   <HBox spacing="20">
+     <VBox fx:id="currentPositionBox" spacing="10" visible="false" managed="false">
+        <Label text="Aktuelle Position:" />
+        <TextField fx:id="currentPositionField" prefWidth="300" />
+        <Label text="Karrierelevel:" />
+        <TextField fx:id="currentCareerLevelField" prefWidth="300" promptText="z.B. Entry-Level / Mid-Level / Senior-Level" />
+     </VBox>
+
+     <VBox fx:id="lastPositionBox" spacing="10" visible="false" managed="false">
+        <Label text="Letzte Position:" />
+        <TextField fx:id="lastPositionField" prefWidth="300" />
+        <Label text="Karrierelevel:" />
+        <TextField fx:id="lastCareerLevelField" prefWidth="300" promptText="z.B. Entry-Level / Mid-Level / Senior-Level"/>
+     </VBox>
+   </HBox>
+
+
+
+
+    <HBox spacing="10">
+        <VBox spacing="5">
+            <Label text="Vorname:" />
+            <TextField fx:id="candidateFirstnameField" />
+        </VBox>
+
+        <VBox spacing="5">
+            <Label text="Nachname:" />
+            <TextField fx:id="candidateLastnameField" />
+        </VBox>
+    </HBox>
+
+    <HBox spacing="10">
+        <VBox spacing="5">
+            <Label text="E-Mail-Adresse:" />
+            <TextField fx:id="emailField" />
+            <Label fx:id="emailFeedbackLabel" />
+        </VBox>
+        <VBox spacing="5">
+            <Label text="Handynummer:" />
+            <TextField fx:id="phoneField" />
+        </VBox>
+    </HBox>
+
+    <VBox spacing="5">
+        <Label text="Woher kennt ihr euch?" />
+        <HBox>
+        <TextArea fx:id="knownFromField"  prefRowCount="3" wrapText="true" prefWidth="400" promptText="z.B. Projekt nterra, Uni, Bar, ..." />
+        </HBox>
+
+    </VBox>
+
+      <HBox spacing="10">
+            <VBox spacing="5">
+                <Label text="Erstkontakt am:" />
+                <DatePicker fx:id="contactDatePicker" />
+            </VBox>
+            <VBox spacing="5">
+                <Label text="Überzeugt am:" />
+                <DatePicker fx:id="convincedCandidateDatePicker" />
+            </VBox>
+        </HBox>
+
+ <VBox spacing="5">
+     <Label text="Kontakt ist informiert zu:" />
+     <HBox spacing="20">
+         <VBox spacing="5">
+             <CheckBox fx:id="informedPositionCheck" text="Position" />
+             <CheckBox fx:id="informedTasksCheck" text="Aufgaben" />
+             <CheckBox fx:id="informedRequirementsCheck" text="Anforderungen" />
+             <CheckBox fx:id="informedClientsProjectsCheck" text="Kunden und Projekten" />
+         </VBox>
+         <VBox spacing="5">
+             <CheckBox fx:id="informedBenefitsCheck" text="Benefits" />
+             <CheckBox fx:id="informedTrainingCheck" text="Weiterbildung" />
+             <CheckBox fx:id="informedCoachCheck" text="Karrierecoach" />
+             <CheckBox fx:id="informedRolesCheck" text="Rollen" />
+         </VBox>
+     </HBox>
+ </VBox>
+
+ <VBox spacing="10">
+     <Label text="Eckdaten" style="-fx-font-weight: bold;" />
+
+     <HBox spacing="10">
+         <VBox spacing="5">
+             <Label text="Berufserfahrung (in Jahren):" />
+             <TextField fx:id="experienceYearsField" promptText="z. B. 5" />
+         </VBox>
+
+         <VBox spacing="5">
+             <Label text="Bevorzugte Rolle:" />
+             <ComboBox fx:id="positionField">
+                 <items>
+                     <FXCollections fx:factory="observableArrayList">
+                         <String fx:value="Junior Developer" />
+                         <String fx:value="Mid-Level Developer" />
+                         <String fx:value="Senior Developer" />
+                         <String fx:value="Team Lead" />
+                         <String fx:value="Architekt" />
+                     </FXCollections>
+                 </items>
+             </ComboBox>
+         </VBox>
+     </HBox>
+
+     <HBox spacing="10">
+         <VBox spacing="5">
+             <Label text="Kündigungsfrist:" />
+             <DatePicker fx:id="noticePeriodDatePicker" />
+         </VBox>
+
+         <VBox spacing="5">
+             <Label text="Verfügbar ab (Starttermin):" />
+             <DatePicker fx:id="startDatePicker" />
+         </VBox>
+     </HBox>
+
+     <HBox spacing="10">
+         <VBox spacing="5">
+             <Label text="Gehaltsvorstellung (€):" />
+             <TextField fx:id="salaryExpectationField" promptText="z. B. 65.000" />
+         </VBox>
+
+         <VBox spacing="5">
+             <Label text="Stundenanzahl (VZ / TZ):" />
+             <TextField fx:id="workHoursField" promptText="z. B. Vollzeit / 32h" />
+         </VBox>
+
+         <VBox spacing="5">
+             <Label text="Reisebereitschaft (%)" />
+             <TextField fx:id="travelWillingnessField" promptText="z. B. 20" />
+         </VBox>
+     </HBox>
+ </VBox>
+
+<Label text="Weitere Infos" style="-fx-font-weight: bold;" />
+
+
+  <VBox spacing="5">
+      <Label text="Lebenslauf (CV):" />
+      <ComboBox fx:id="cvChoiceCombo">
+          <items>
+              <FXCollections fx:factory="observableArrayList">
+                  <String fx:value="CV hochladen" />
+                  <String fx:value="CV per E-Mail" />
+                  <String fx:value="CV im Business-Profil-Link enthalten" />
+              </FXCollections>
+          </items>
+      </ComboBox>
+
+      <!-- CV Upload-Button (nur bei "CV hochladen") -->
+      <Button fx:id="uploadCvButton" onAction="#handleBrowseCV" text="CV hochladen" visible="false" />
+
+      <!-- Info-Label bei "CV per E-Mail" -->
+      <Label fx:id="cvByEmailLabel" text="CV wird separat per E-Mail verschickt." visible="false" />
+
+ <!-- Info-Label bei "CV im Business-Profil-Link enthalten" -->
+      <Label fx:id="cvByBusinessLink" text="CV ist im Business-Profil enthalten." visible="false" />
+
+        <!-- Checkbox für optionale Link-Eingabe -->
+        <CheckBox fx:id="cvLinkToggle" text="Business-Profil-Link angeben" />
+        <TextField fx:id="documentCvField" promptText="Xing, LinkedIn..." visible="false" />
+  </VBox>
+
+
+  <GridPane hgap="10" vgap="10">
+      <columnConstraints>
+          <ColumnConstraints percentWidth="8.5"/>
+          <ColumnConstraints percentWidth="8.5"/>
+          <ColumnConstraints percentWidth="8.5"/>
+          <ColumnConstraints percentWidth="8.5"/>
+          <ColumnConstraints percentWidth="8.5"/>
+          <ColumnConstraints percentWidth="8.5"/>
+          <ColumnConstraints percentWidth="8.5"/>
+          <ColumnConstraints percentWidth="8.5"/>
+          <ColumnConstraints percentWidth="8.5"/>
+      </columnConstraints>
+
+      <Label text="Skill-Skills (mit Kenntnisstand in %):" style="-fx-font-weight: bold;" GridPane.columnSpan="6" />
+
+      <!-- Backend -->
+      <Label text="Backend:" style="-fx-font-weight: bold;" GridPane.rowIndex="1" GridPane.columnSpan="7" />
+      <CheckBox fx:id="javaCheckBox" text="Java" GridPane.rowIndex="2" GridPane.columnIndex="0"/>
+      <TextField fx:id="javaPercentField" promptText="Kenntnisgrad (%)" visible="false" GridPane.rowIndex="2" GridPane.columnIndex="1"/>
+      <CheckBox fx:id="springCheckBox" text="Spring" GridPane.rowIndex="2" GridPane.columnIndex="2"/>
+      <TextField fx:id="springPercentField" promptText="Kenntnisgrad (%)" visible="false" GridPane.rowIndex="2" GridPane.columnIndex="3"/>
+      <CheckBox fx:id="backendOtherCheckBox" text="Andere" GridPane.rowIndex="2" GridPane.columnIndex="4"/>
+      <TextField fx:id="backendOtherNameField" promptText="Skill" visible="false" GridPane.rowIndex="2" GridPane.columnIndex="5"/>
+      <TextField fx:id="backendOtherPercentField" promptText="Kenntnisgrad (%)" visible="false" GridPane.rowIndex="2" GridPane.columnIndex="6"/>
+
+
+      <!-- Frontend -->
+      <Label text="Frontend:" style="-fx-font-weight: bold;" GridPane.rowIndex="3" GridPane.columnSpan="7" />
+      <CheckBox fx:id="angularCheckBox" text="Angular" GridPane.rowIndex="4" GridPane.columnIndex="0"/>
+      <TextField fx:id="angularPercentField" promptText="Kenntnisgrad (%)" visible="false" GridPane.rowIndex="4" GridPane.columnIndex="1"/>
+      <CheckBox fx:id="reactCheckBox" text="React" GridPane.rowIndex="4" GridPane.columnIndex="2"/>
+      <TextField fx:id="reactPercentField" promptText="Kenntnisgrad (%)" visible="false" GridPane.rowIndex="4" GridPane.columnIndex="3"/>
+      <CheckBox fx:id="vueCheckBox" text="Vue.js" GridPane.rowIndex="4" GridPane.columnIndex="4"/>
+      <TextField fx:id="vuePercentField" promptText="Kenntnisgrad (%)" visible="false" GridPane.rowIndex="4" GridPane.columnIndex="5"/>
+      <CheckBox fx:id="frontendOtherCheckBox" text="Andere" GridPane.rowIndex="4" GridPane.columnIndex="6"/>
+      <TextField fx:id="frontendOtherNameField" promptText="Skill" visible="false" GridPane.rowIndex="4" GridPane.columnIndex="7"/>
+      <TextField fx:id="frontendOtherPercentField" promptText="Kenntnisgrad (%)" visible="false" GridPane.rowIndex="4" GridPane.columnIndex="8"/>
+
+
+      <!-- Datenbanken -->
+      <Label text="Datenbanken:" style="-fx-font-weight: bold;" GridPane.rowIndex="6" GridPane.columnSpan="6" />
+      <CheckBox fx:id="sqlCheckBox" text="SQL" GridPane.rowIndex="7" GridPane.columnIndex="0"/>
+      <TextField fx:id="sqlPercentField" promptText="Kenntnisgrad (%)" visible="false" GridPane.rowIndex="7" GridPane.columnIndex="1"/>
+      <CheckBox fx:id="mongoCheckBox" text="MongoDB" GridPane.rowIndex="7" GridPane.columnIndex="2"/>
+      <TextField fx:id="mongoPercentField" promptText="Kenntnisgrad (%)" visible="false" GridPane.rowIndex="7" GridPane.columnIndex="3"/>
+      <CheckBox fx:id="databaseOtherCheckBox" text="Andere" GridPane.rowIndex="7" GridPane.columnIndex="4"/>
+       <TextField fx:id="databaseOtherNameField" promptText="Skill" visible="false" GridPane.rowIndex="7" GridPane.columnIndex="5"/>
+      <TextField fx:id="databaseOtherPercentField" promptText="Kenntnisgrad (%)" visible="false" GridPane.rowIndex="7" GridPane.columnIndex="6"/>
+
+
+      <!-- Buildsysteme -->
+      <Label text="Buildsysteme:" style="-fx-font-weight: bold;" GridPane.rowIndex="8" GridPane.columnSpan="6" />
+      <CheckBox fx:id="mavenCheckBox" text="Maven" GridPane.rowIndex="9" GridPane.columnIndex="0"/>
+      <TextField fx:id="mavenPercentField" promptText="Kenntnisgrad (%)" visible="false" GridPane.rowIndex="9" GridPane.columnIndex="1"/>
+      <CheckBox fx:id="gradleCheckBox" text="Gradle" GridPane.rowIndex="9" GridPane.columnIndex="2"/>
+      <TextField fx:id="gradlePercentField" promptText="Kenntnisgrad (%)" visible="false" GridPane.rowIndex="9" GridPane.columnIndex="3"/>
+      <CheckBox fx:id="buildOtherCheckBox" text="Andere" GridPane.rowIndex="9" GridPane.columnIndex="4"/>
+      <TextField fx:id="buildOtherNameField" promptText="Skill" visible="false" GridPane.rowIndex="9" GridPane.columnIndex="5"/>
+      <TextField fx:id="buildOtherPercentField" promptText="Kenntnisgrad (%)" visible="false" GridPane.rowIndex="9" GridPane.columnIndex="6"/>
+
+
+      <!-- CI/CD Tools -->
+      <Label text="CI/CD-Tools:" style="-fx-font-weight: bold;" GridPane.rowIndex="10" GridPane.columnSpan="6" />
+      <CheckBox fx:id="jenkinsCheckBox" text="Jenkins" GridPane.rowIndex="11" GridPane.columnIndex="0"/>
+      <TextField fx:id="jenkinsPercentField" promptText="Kenntnisgrad (%)" visible="false" GridPane.rowIndex="11" GridPane.columnIndex="1"/>
+      <CheckBox fx:id="azureCheckBox" text="Azure" GridPane.rowIndex="11" GridPane.columnIndex="2"/>
+      <TextField fx:id="azurePercentField" promptText="Kenntnisgrad (%)" visible="false" GridPane.rowIndex="11" GridPane.columnIndex="3"/>
+      <CheckBox fx:id="bambooCheckBox" text="Bamboo" GridPane.rowIndex="11" GridPane.columnIndex="4"/>
+      <TextField fx:id="bambooPercentField" promptText="Kenntnisgrad (%)" visible="false" GridPane.rowIndex="11" GridPane.columnIndex="5"/>
+      <CheckBox fx:id="cicdOtherCheckBox" text="Andere" GridPane.rowIndex="11" GridPane.columnIndex="6"/>
+      <TextField fx:id="cicdOtherNameField" promptText="Skill" visible="false" GridPane.rowIndex="11" GridPane.columnIndex="7"/>
+      <TextField fx:id="cicdOtherPercentField" promptText="Kenntnisgrad (%)" visible="false" GridPane.rowIndex="11" GridPane.columnIndex="8"/>
+     </GridPane>
+
+
+<Label text="Weitere individuelle Skills:" style="-fx-font-weight: bold;" GridPane.rowIndex="12" GridPane.columnSpan="8" />
+
+<VBox fx:id="customSkillsContainer" spacing="5" GridPane.rowIndex="13" GridPane.columnSpan="8" />
+
+<HBox spacing="10" alignment="CENTER_LEFT" GridPane.rowIndex="14" GridPane.columnSpan="8">
+    <Label text="Skill hinzufügen:" />
+    <Button text="+" fx:id="addSkillButton" onAction="#handleAddCustomSkill" />
+</HBox>
+
+
+
+    <VBox spacing="5">
+        <Label text="Persönlichkeitstyp DISG" />
+        <HBox>
+        <TextArea fx:id="personalityTypArea" prefWidth="400" wrapText="true" prefRowCount="3" promptText="Beschreibe Charaktereigenschaft (D/I/S/G):" />
+        </HBox>
+    </VBox>
+
+    <VBox spacing="5">
+        <Label text="Charakter / Hobbys außerhalb vom Job:" />
+        <HBox>
+        <TextArea fx:id="hobbiesField" prefRowCount="3" prefWidth="400" promptText="Beschreibe Hobbys und Merkmale" wrapText="true" />
+        </HBox>
+    </VBox>
+
+    <VBox spacing="5">
+        <Label text="Projekterfahrung (sofern bekannt):" />
+        <HBox>
+        <TextArea fx:id="projectExperienceField" prefRowCount="3" prefWidth="400" promptText="Beschreibe bisherige Projekte" wrapText="true" />
+        </HBox>
+    </VBox>
+
+    <VBox spacing="5">
+            <Label text="Sonstiges:" />
+            <HBox>
+            <TextArea fx:id="miscellaneousField" prefRowCount="3" prefWidth="400" promptText="Gibt es sonst noch was?" wrapText="true" />
+            </HBox>
+        </VBox>
+
+    <Button fx:id="submitButton" onAction="#handleSaveRecommendation" style="-fx-background-color: #4CAF50; -fx-text-fill: white;" text="Empfehlung abschicken" />
+ <Button onAction="#handleBack" text="Zurück" />
+
+</VBox>
+
+    </content>
+</ScrollPane>
+
