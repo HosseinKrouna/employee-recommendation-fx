@@ -370,7 +370,7 @@ public class RecommendationRequestDTO {
         return businessLink;
     }
 
-    public void setBusinessLink(String cvLink) {
+    public void setBusinessLink(String businessLink) {
         this.businessLink = businessLink;
     }
 

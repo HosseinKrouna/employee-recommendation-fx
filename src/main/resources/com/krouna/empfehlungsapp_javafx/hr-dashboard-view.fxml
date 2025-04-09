@@ -35,6 +35,7 @@
                     <TableColumn fx:id="submittedAtColumn" text="Eingereicht" prefWidth="150"/>
                     <TableColumn fx:id="recommendedByColumn" text="Empfohlen von" />
                     <TableColumn fx:id="cvFileColumn" text="CV" />
+                    <TableColumn fx:id="businessLinkColumn" text="Business-Link" />
                     <TableColumn fx:id="pdfFileColumn" text="PDF" />
                 </columns>
             </TableView>
