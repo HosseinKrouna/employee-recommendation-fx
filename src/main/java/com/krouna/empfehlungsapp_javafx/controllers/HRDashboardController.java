@@ -48,6 +48,8 @@ public class HRDashboardController implements Initializable {
     @FXML
     private TableColumn<RecommendationDTO, String> cvFileColumn;
     @FXML
+    private TableColumn<RecommendationDTO, String> businessLinkColumn;
+    @FXML
     private TableColumn<RecommendationDTO, String> pdfFileColumn;
 
 
@@ -75,6 +77,7 @@ public class HRDashboardController implements Initializable {
                 new SimpleStringProperty(cellData.getValue().getRecommendedByUsername()));
 
         setupColumn(cvFileColumn, "documentCvPath");
+        setupColumn(businessLinkColumn, "businessLink");
         setupColumn(pdfFileColumn, "documentPdfPath");
 
         // CV-Spalte bleibt wie gehabt:

@@ -43,6 +43,8 @@ public class EmployeeDashboardController implements Initializable {
     @FXML
     private TableColumn<RecommendationDTO, String> cvFileColumn;
     @FXML
+    private TableColumn<RecommendationDTO, String> businessLinkColumn;
+    @FXML
     private TableColumn<RecommendationDTO, String> pdfFileColumn;
 
 
@@ -64,6 +66,7 @@ public class EmployeeDashboardController implements Initializable {
         setupColumn(statusColumn, "status");
         setupColumn(submittedAtColumn, "submittedAt");
         setupColumn(cvFileColumn, "documentCvPath");
+        setupColumn(businessLinkColumn, "businessLink");
         setupColumn(pdfFileColumn, "documentPdfPath");
 
         // CV-Spalte bleibt wie gehabt:

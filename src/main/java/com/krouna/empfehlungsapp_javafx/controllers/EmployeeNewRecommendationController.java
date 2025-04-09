@@ -66,8 +66,8 @@ public class EmployeeNewRecommendationController {
     @FXML private Button uploadCvButton;
     @FXML private Label cvByEmailLabel;
     @FXML private Label cvByBusinessLink;
-    @FXML private CheckBox cvLinkToggle;
-    @FXML private TextField documentCvField;
+    @FXML private CheckBox businessLinkToggle;
+    @FXML private TextField businessLinkField;
     @FXML private TextArea personalityTypArea;
 
     // Skill checkboxes and percentage fields
@@ -239,16 +239,15 @@ public class EmployeeNewRecommendationController {
             cvByEmailLabel.setVisible("CV per E-Mail".equals(selected));
             cvByBusinessLink.setVisible("CV im Business-Profil-Link enthalten".equals(selected));
 
-            // Direkt anzeigen
-            boolean isBusinessProfile = "CV im Business-Profil-Link enthalten".equals(selected);
-            documentCvField.setVisible(isBusinessProfile);
-            cvLinkToggle.setVisible(!isBusinessProfile);
+//            // Direkt anzeigen
+//            boolean isBusinessProfile = "CV im Business-Profil-Link enthalten".equals(selected);
+//            cvLinkToggle.setVisible(!isBusinessProfile);
         });
 
 
 
         // Setup CV link toggle
-        cvLinkToggle.setOnAction(e -> documentCvField.setVisible(cvLinkToggle.isSelected()));
+//        cvLinkToggle.setOnAction(e -> documentCvField.setVisible(cvLinkToggle.isSelected()));
     }
 
     private void initializeDatePickers() {
@@ -289,7 +288,7 @@ public class EmployeeNewRecommendationController {
 
     private void uploadCV(File file) {
         MultipartUtils.uploadFile(file, savedFilename -> Platform.runLater(() -> {
-            documentCvField.setText(savedFilename);
+//            documentCvField.setText(savedFilename);
             uploadedCvFilename = savedFilename;
         }));
     }
@@ -390,7 +389,7 @@ public class EmployeeNewRecommendationController {
     private void setCVDetails(RecommendationRequestDTO dto) {
         dto.setCvChoice(cvChoiceCombo.getValue());
         dto.setDocumentCvPath(uploadedCvFilename);
-        dto.setCvLink(documentCvField.getText().trim());
+        dto.setBusinessLink(businessLinkField.getText().trim());
     }
 
     private void setAdditionalInfo(RecommendationRequestDTO dto) {
