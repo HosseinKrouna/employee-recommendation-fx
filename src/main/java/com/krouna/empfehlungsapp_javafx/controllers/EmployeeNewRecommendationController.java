@@ -76,10 +76,6 @@ public class EmployeeNewRecommendationController {
     @FXML private HBox cvPreviewBox;
     @FXML private ImageView cvIcon;
     @FXML private Hyperlink cvLink;
-    @FXML private Label cvLinkWarningLabel;
-    @FXML private Label cvLinkValidationLabel;
-
-
 
     @FXML private Label cvByEmailLabel;
     @FXML private Label cvByBusinessLink;
@@ -163,13 +159,14 @@ public class EmployeeNewRecommendationController {
         FocusTraversHelper.cancelFocusTravers(scrollPane.getContent());
         updateCvPreviewIfExists();
 
+
         // Listener für BusinessLink (optional für Live-Style-Änderung)
         businessLinkToggle.selectedProperty().addListener((obs, ov, nv) -> handleBusinessLinkToggleChange());
         businessLinkField.textProperty().addListener((obs, ov, nv) -> handleBusinessLinkToggleChange());
 
         // updateCvPreviewIfExists(); // Behalten falls benötigt
 
-    }
+    
 
     // Optional: Methode um Stil bei BusinessLink-Änderung live anzupassen
     private void handleBusinessLinkToggleChange() {
@@ -179,7 +176,9 @@ public class EmployeeNewRecommendationController {
         formValidator.validateOptionalBusinessLinkInternal(businessLinkField, businessLinkToggle, "Business-Profil-Link");
         // Wichtig: Fehlerstil wird nur gesetzt, wenn die Prüfung fehlschlägt.
         // Wenn es gültig wird, entfernt validateOptionalBusinessLinkInternal den Stil.
+
     }
+
 
     private void initializeRequiredFields() {
         formValidator.addRequiredTextField(candidateFirstnameField);
@@ -276,8 +275,19 @@ public class EmployeeNewRecommendationController {
 
             // Direkt anzeigen
             boolean isBusinessProfile = "CV im Business-Profil-Link enthalten".equals(selected);
+
             businessLinkToggle.setVisible(!isBusinessProfile);
             businessLinkField.setVisible(isBusinessProfile);
+
+            documentCvField.setVisible(isBusinessProfile);
+            cvLinkToggle.setVisible(!isBusinessProfile);
+
+
+            if (!"CV hochladen".equals(selected)) {
+                uploadedCvFilename = null;
+                cvPreviewBox.setVisible(false);
+            }
+
         });
 
 
@@ -324,12 +334,17 @@ public class EmployeeNewRecommendationController {
 
     private void uploadCV(File file) {
         MultipartUtils.uploadFile(file, savedFilename -> Platform.runLater(() -> {
-//            documentCvField.setText(savedFilename);
+       
             uploadedCvFilename = savedFilename;
+
+            documentCvField.setText(file.getAbsolutePath());
+            uploadedCvFilename = file.getAbsolutePath();
+
         }));
         cvPreviewBox.setVisible(true);
         cvIcon.setImage(new Image(getClass().getResourceAsStream("/images/pdf-icon.png")));
         cvLink.setText(file.getName());
+
 
     }
     @FXML
@@ -365,6 +380,53 @@ public class EmployeeNewRecommendationController {
             System.err.println("CV nicht gefunden: " + filePath);
         }
     }
+      
+      
+    @FXML
+    private void handleOpenUploadedCV(ActionEvent event) {
+        if (uploadedCvFilename == null || uploadedCvFilename.isBlank()) return;
+
+        try {
+            File pdf = new File(uploadedCvFilename);
+            if (pdf.exists()) {
+                Desktop.getDesktop().open(pdf);
+            } else {
+                DialogUtil.showError("Datei nicht gefunden", "Die hochgeladene Datei konnte nicht gefunden werden.");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            DialogUtil.showError("Fehler beim Öffnen", "Die Datei konnte nicht geöffnet werden.");
+        }
+    }
+
+
+    private void updateCvPreviewIfExists() {
+        String selected = cvChoiceCombo.getValue();
+        if (!"CV hochladen".equals(selected)) return;
+
+        String filePath = documentCvField.getText();
+        File file = new File(filePath);
+
+        if (file.exists()) {
+            cvIcon.setImage(new Image(getClass().getResourceAsStream("/images/pdf-icon.png")));
+            cvLink.setText(file.getName());
+            uploadedCvFilename = filePath;
+            cvPreviewBox.setVisible(true);
+        } else {
+            System.err.println("CV nicht gefunden: " + filePath);
+        }
+    }
+
+
+
+    @FXML
+    private void handleRemoveCVPreview(ActionEvent event) {
+        uploadedCvFilename = null;
+        documentCvField.clear();
+        cvPreviewBox.setVisible(false);
+    }
+
+
 
 
 
