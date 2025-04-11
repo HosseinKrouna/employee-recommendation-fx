@@ -402,27 +402,39 @@ public class EmployeeNewRecommendationController {
 
     private void submitRecommendation(ActionEvent event, RecommendationRequestDTO dto) {
         backendService.submitRecommendation(dto)
-                .thenApply(response -> new HttpResponse(response.statusCode(), response.body()))
-                .thenAccept(response -> handleSubmissionResponse(event, response))
+                // Annahme: submitRecommendation gibt CompletableFuture<HttpResponse> zurück
+                .thenAccept(response -> handleSubmissionResponse(event, response)) // response ist hier vom Typ HttpResponse
                 .exceptionally(e -> handleSubmissionError(e));
     }
 
-    private void handleSubmissionResponse(ActionEvent event, HttpResponse response) {
-        if (response.isSuccess()) {
+    private void handleSubmissionResponse(ActionEvent event, HttpResponse response) { // response ist vom Typ deiner HttpResponse
+        // Verwende den Getter oder die isSuccess-Methode
+        // if (response.getStatusCode() == 200) { // Gültig
+        if (response.isSuccess()) { // Bevorzugt, wenn isSuccess() existiert
             Platform.runLater(() -> {
                 DialogUtil.showInfo("Erfolg", "Empfehlung erfolgreich gespeichert!");
                 SceneUtil.switchScene(event, "/com/krouna/empfehlungsapp_javafx/employee-dashboard-view.fxml", 0.8);
             });
         } else {
-            Platform.runLater(() -> DialogUtil.showError("Fehler", "Fehler beim Speichern!"));
+            Platform.runLater(() -> {
+                // Optional: Zeige Details aus der Antwort an
+                String errorDetails = "Fehler beim Speichern!";
+                if (response.getBody() != null && !response.getBody().isBlank()){
+                    errorDetails += "\nServerantwort: " + response.getBody();
+                } else {
+                    errorDetails += "\nStatuscode: " + response.getStatusCode();
+                }
+                DialogUtil.showError("Fehler", errorDetails);
+            });
         }
     }
 
     private Void handleSubmissionError(Throwable e) {
         e.printStackTrace();
-        Platform.runLater(() -> DialogUtil.showError("Fehler", "Fehler bei der Anfrage!"));
+        Platform.runLater(() -> DialogUtil.showError("Fehler", "Fehler bei der Anfrage: " + e.getMessage()));
         return null;
     }
+
 
     private RecommendationRequestDTO createRecommendationDTO() {
         RecommendationRequestDTO dto = new RecommendationRequestDTO();

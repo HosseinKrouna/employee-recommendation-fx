@@ -81,7 +81,7 @@ public class EmployeeDashboardController implements Initializable {
         // --- CellFactory für CV Spalte
         cvFileColumn.setCellValueFactory(new PropertyValueFactory<>("documentCvPath")); // Datenquelle bleibt
         cvFileColumn.setCellFactory(col -> new DownloadButtonTableCell(fileDownloadService,
-                recommendation -> fileDownloadService.downloadFile(recommendation.getDocumentCvPath())));
+                recommendation -> fileDownloadService.downloadCvFile(recommendation.getDocumentCvPath())));
 
         // --- NEU: CellFactory für Business-Link Spalte ---
         businessLinkColumn.setCellValueFactory(new PropertyValueFactory<>("businessLink")); // Datenquelle bleibt String
@@ -154,8 +154,10 @@ public class EmployeeDashboardController implements Initializable {
 
     @FXML
     private void handleLogout(ActionEvent event) {
-        UserSession.getInstance().setUsername(null);
+        // Leere die gesamte UserSession, inklusive userId, username UND token
+        UserSession.getInstance().clear(); // <-- ÄNDERUNG HIER
+
+        // Wechsle zurück zur Rollenauswahl
         SceneUtil.switchScene(event, "/com/krouna/empfehlungsapp_javafx/role-selection-view.fxml");
     }
-
 }

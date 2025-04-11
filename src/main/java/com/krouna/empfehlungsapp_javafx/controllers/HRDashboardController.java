@@ -4,6 +4,7 @@ import com.krouna.empfehlungsapp_javafx.services.FileDownloadService;
 import com.krouna.empfehlungsapp_javafx.ui.cells.DownloadButtonTableCell;
 import com.krouna.empfehlungsapp_javafx.util.DialogUtil;
 import com.krouna.empfehlungsapp_javafx.util.SceneUtil;
+import com.krouna.empfehlungsapp_javafx.util.UserSession;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -92,7 +93,7 @@ public class HRDashboardController implements Initializable {
         // --- CellFactory für CV Spalte
         cvFileColumn.setCellValueFactory(new PropertyValueFactory<>("documentCvPath")); // Datenquelle bleibt
         cvFileColumn.setCellFactory(col -> new DownloadButtonTableCell(fileDownloadService,
-                recommendation -> fileDownloadService.downloadFile(recommendation.getDocumentCvPath())));
+                recommendation -> fileDownloadService.downloadCvFile(recommendation.getDocumentCvPath())));
 
         // --- NEU: CellFactory für Business-Link Spalte ---
         businessLinkColumn.setCellValueFactory(new PropertyValueFactory<>("businessLink")); // Datenquelle bleibt String
@@ -159,6 +160,10 @@ public class HRDashboardController implements Initializable {
 
     @FXML
     private void handleLogout(ActionEvent event) {
+        // Leere die gesamte UserSession, inklusive userId, username UND token
+        UserSession.getInstance().clear(); // <-- ÄNDERUNG HIER
+
+        // Wechsle zurück zur Rollenauswahl
         SceneUtil.switchScene(event, "/com/krouna/empfehlungsapp_javafx/role-selection-view.fxml");
     }
 
