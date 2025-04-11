@@ -79,8 +79,8 @@ public class EmployeeNewRecommendationController {
 
     @FXML private Label cvByEmailLabel;
     @FXML private Label cvByBusinessLink;
-    @FXML private CheckBox cvLinkToggle;
-    @FXML private TextField documentCvField;
+    @FXML private CheckBox businessLinkToggle;
+    @FXML private TextField businessLinkField;
     @FXML private TextArea personalityTypArea;
 
     // Skill checkboxes and percentage fields
@@ -159,6 +159,23 @@ public class EmployeeNewRecommendationController {
         FocusTraversHelper.cancelFocusTravers(scrollPane.getContent());
         updateCvPreviewIfExists();
 
+
+        // Listener für BusinessLink (optional für Live-Style-Änderung)
+        businessLinkToggle.selectedProperty().addListener((obs, ov, nv) -> handleBusinessLinkToggleChange());
+        businessLinkField.textProperty().addListener((obs, ov, nv) -> handleBusinessLinkToggleChange());
+
+        // updateCvPreviewIfExists(); // Behalten falls benötigt
+
+    
+
+    // Optional: Methode um Stil bei BusinessLink-Änderung live anzupassen
+    private void handleBusinessLinkToggleChange() {
+        // Ruft die Validierungslogik auf, aber ignoriert das Ergebnis hier.
+        // Wir wollen nur den Stil live anpassen, wenn es ungültig WIRD.
+        // Die *finale* Prüfung macht validateForm.
+        formValidator.validateOptionalBusinessLinkInternal(businessLinkField, businessLinkToggle, "Business-Profil-Link");
+        // Wichtig: Fehlerstil wird nur gesetzt, wenn die Prüfung fehlschlägt.
+        // Wenn es gültig wird, entfernt validateOptionalBusinessLinkInternal den Stil.
 
     }
 
@@ -258,6 +275,10 @@ public class EmployeeNewRecommendationController {
 
             // Direkt anzeigen
             boolean isBusinessProfile = "CV im Business-Profil-Link enthalten".equals(selected);
+
+            businessLinkToggle.setVisible(!isBusinessProfile);
+            businessLinkField.setVisible(isBusinessProfile);
+
             documentCvField.setVisible(isBusinessProfile);
             cvLinkToggle.setVisible(!isBusinessProfile);
 
@@ -265,14 +286,14 @@ public class EmployeeNewRecommendationController {
             if (!"CV hochladen".equals(selected)) {
                 uploadedCvFilename = null;
                 cvPreviewBox.setVisible(false);
-                documentCvField.clear();
             }
+
         });
 
 
 
-        // Setup CV link toggle
-        cvLinkToggle.setOnAction(e -> documentCvField.setVisible(cvLinkToggle.isSelected()));
+         // Business-Link  toggle
+        businessLinkToggle.setOnAction(e -> businessLinkField.setVisible(businessLinkToggle.isSelected()));
     }
 
     private void initializeDatePickers() {
@@ -313,14 +334,54 @@ public class EmployeeNewRecommendationController {
 
     private void uploadCV(File file) {
         MultipartUtils.uploadFile(file, savedFilename -> Platform.runLater(() -> {
+       
+            uploadedCvFilename = savedFilename;
+
             documentCvField.setText(file.getAbsolutePath());
             uploadedCvFilename = file.getAbsolutePath();
+
         }));
         cvPreviewBox.setVisible(true);
         cvIcon.setImage(new Image(getClass().getResourceAsStream("/images/pdf-icon.png")));
         cvLink.setText(file.getName());
 
+
     }
+    @FXML
+    private void handleOpenUploadedCV(ActionEvent event) {
+        if (uploadedCvFilename == null || uploadedCvFilename.isBlank()) return;
+
+        try {
+            File pdf = new File(uploadedCvFilename);
+            if (pdf.exists()) {
+                Desktop.getDesktop().open(pdf);
+            } else {
+                DialogUtil.showError("Datei nicht gefunden", "Die hochgeladene Datei konnte nicht gefunden werden.");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            DialogUtil.showError("Fehler beim Öffnen", "Die Datei konnte nicht geöffnet werden.");
+        }
+    }
+
+
+    private void updateCvPreviewIfExists() {
+        String selected = cvChoiceCombo.getValue();
+        if (!"CV hochladen".equals(selected)) return;
+
+       String filePath = uploadedCvFilename;
+        File file = new File(filePath);
+
+        if (file.exists()) {
+            cvIcon.setImage(new Image(getClass().getResourceAsStream("/images/pdf-icon.png")));
+            cvLink.setText(file.getName());
+            cvPreviewBox.setVisible(true);
+        } else {
+            System.err.println("CV nicht gefunden: " + filePath);
+        }
+    }
+      
+      
     @FXML
     private void handleOpenUploadedCV(ActionEvent event) {
         if (uploadedCvFilename == null || uploadedCvFilename.isBlank()) return;
@@ -367,39 +428,75 @@ public class EmployeeNewRecommendationController {
 
 
 
+
+
+    @FXML
+    private void handleRemoveCVPreview(ActionEvent event) {
+        uploadedCvFilename = null;
+        cvPreviewBox.setVisible(false);
+    }
+
+
+
     @FXML
     private void handleSaveRecommendation(ActionEvent event) {
-        if (!formValidator.validateForm(scrollPane)) {
-            return;
+        // Rufe die zentrale Validierungsmethode auf
+        // Übergib alle Felder, die spezielle Prüfungen benötigen
+        boolean isFormValid = formValidator.validateForm(
+                scrollPane,
+                businessLinkField,
+                businessLinkToggle,
+                emailField
+                // Füge hier weitere Felder für spezielle Prüfungen hinzu, falls nötig
+        );
+
+        if (!isFormValid) {
+            // Die Fehlermeldung und das Scrollen werden jetzt vom FormValidator erledigt
+            System.out.println("Validierung fehlgeschlagen."); // Log
+            return; // Abbrechen
         }
 
+        // Wenn die Validierung erfolgreich war:
+        System.out.println("Validierung erfolgreich."); // Log
         RecommendationRequestDTO dto = createRecommendationDTO();
         submitRecommendation(event, dto);
     }
 
     private void submitRecommendation(ActionEvent event, RecommendationRequestDTO dto) {
         backendService.submitRecommendation(dto)
-                .thenApply(response -> new HttpResponse(response.statusCode(), response.body()))
-                .thenAccept(response -> handleSubmissionResponse(event, response))
+                // Annahme: submitRecommendation gibt CompletableFuture<HttpResponse> zurück
+                .thenAccept(response -> handleSubmissionResponse(event, response)) // response ist hier vom Typ HttpResponse
                 .exceptionally(e -> handleSubmissionError(e));
     }
 
-    private void handleSubmissionResponse(ActionEvent event, HttpResponse response) {
-        if (response.isSuccess()) {
+    private void handleSubmissionResponse(ActionEvent event, HttpResponse response) { // response ist vom Typ deiner HttpResponse
+        // Verwende den Getter oder die isSuccess-Methode
+        // if (response.getStatusCode() == 200) { // Gültig
+        if (response.isSuccess()) { // Bevorzugt, wenn isSuccess() existiert
             Platform.runLater(() -> {
                 DialogUtil.showInfo("Erfolg", "Empfehlung erfolgreich gespeichert!");
                 SceneUtil.switchScene(event, "/com/krouna/empfehlungsapp_javafx/employee-dashboard-view.fxml", 0.8);
             });
         } else {
-            Platform.runLater(() -> DialogUtil.showError("Fehler", "Fehler beim Speichern!"));
+            Platform.runLater(() -> {
+                // Optional: Zeige Details aus der Antwort an
+                String errorDetails = "Fehler beim Speichern!";
+                if (response.getBody() != null && !response.getBody().isBlank()){
+                    errorDetails += "\nServerantwort: " + response.getBody();
+                } else {
+                    errorDetails += "\nStatuscode: " + response.getStatusCode();
+                }
+                DialogUtil.showError("Fehler", errorDetails);
+            });
         }
     }
 
     private Void handleSubmissionError(Throwable e) {
         e.printStackTrace();
-        Platform.runLater(() -> DialogUtil.showError("Fehler", "Fehler bei der Anfrage!"));
+        Platform.runLater(() -> DialogUtil.showError("Fehler", "Fehler bei der Anfrage: " + e.getMessage()));
         return null;
     }
+
 
     private RecommendationRequestDTO createRecommendationDTO() {
         RecommendationRequestDTO dto = new RecommendationRequestDTO();
@@ -463,7 +560,7 @@ public class EmployeeNewRecommendationController {
     private void setCVDetails(RecommendationRequestDTO dto) {
         dto.setCvChoice(cvChoiceCombo.getValue());
         dto.setDocumentCvPath(uploadedCvFilename);
-        dto.setCvLink(documentCvField.getText().trim());
+        dto.setBusinessLink(businessLinkField.getText().trim());
     }
 
     private void setAdditionalInfo(RecommendationRequestDTO dto) {

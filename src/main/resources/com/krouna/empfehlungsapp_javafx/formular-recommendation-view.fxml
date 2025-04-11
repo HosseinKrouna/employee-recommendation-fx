@@ -215,8 +215,8 @@
       <Label fx:id="cvByBusinessLink" text="CV ist im Business-Profil enthalten." visible="false" />
 
         <!-- Checkbox für optionale Link-Eingabe -->
-        <CheckBox fx:id="cvLinkToggle" text="Business-Profil-Link angeben" />
-        <TextField fx:id="documentCvField" promptText="Xing, LinkedIn..." visible="false" />
+        <CheckBox fx:id="businessLinkToggle" text="Business-Profil-Link angeben" />
+        <TextField fx:id="businessLinkField" promptText="Xing, LinkedIn..." visible="false" />
   </VBox>
 
 

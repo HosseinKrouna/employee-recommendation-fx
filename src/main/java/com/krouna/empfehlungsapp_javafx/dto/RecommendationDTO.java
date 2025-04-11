@@ -6,12 +6,20 @@ public class RecommendationDTO {
     private String candidateLastname;
     private String position;
     private String documentCvPath;
+    private String businessLink;
     private String documentPdfPath;
     private String status;
     private String submittedAt;
     private Long userId;
     private String recommendedByUsername; // Nur zur Anzeige
 
+    public String getBusinessLink() {
+        return businessLink;
+    }
+
+    public void setBusinessLink(String businessLink) {
+        this.businessLink = businessLink;
+    }
 
     public Long getId() {
         return id;
