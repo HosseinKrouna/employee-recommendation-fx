@@ -209,7 +209,7 @@ public class FormValidator {
     /**
      * Entfernt den Fehlerstil von einem Control.
      */
-    private void removeErrorStyle(Control control) {
+    public void removeErrorStyle(Control control) {
         control.setStyle(null); // Standardstil wiederherstellen
     }
 

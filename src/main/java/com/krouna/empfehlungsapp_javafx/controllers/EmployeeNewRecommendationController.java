@@ -2,13 +2,13 @@ package com.krouna.empfehlungsapp_javafx.controllers;
 
 import com.krouna.empfehlungsapp_javafx.dto.RecommendationRequestDTO;
 import com.krouna.empfehlungsapp_javafx.services.BackendService;
-import com.krouna.empfehlungsapp_javafx.util.*;
+import com.krouna.empfehlungsapp_javafx.util.*; // Importiere alle Utils
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
 import javafx.scene.control.*;
-import javafx.scene.control.Button;
+import javafx.scene.control.Button; // Explizite Imports sind ok, * nicht zwingend
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextArea;
@@ -19,17 +19,16 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 
-import java.awt.*;
+import java.awt.Desktop; // Desktop für Datei-Öffnen
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-
-
-
 public class EmployeeNewRecommendationController {
+
+    // --- FXML Felder ---
 
     // Basic candidate information fields
     @FXML private TextField candidateFirstnameField;
@@ -70,24 +69,30 @@ public class EmployeeNewRecommendationController {
     @FXML private TextField workHoursField;
     @FXML private TextField travelWillingnessField;
 
-    // CV fields
+    // CV and Business Link fields
     @FXML private ComboBox<String> cvChoiceCombo;
     @FXML private Button uploadCvButton;
-    @FXML private HBox cvPreviewBox;
+    @FXML private HBox cvPreviewBox;        // Zeigt Icon, Link, Löschen-Button für hochgeladene CV
     @FXML private ImageView cvIcon;
     @FXML private Hyperlink cvLink;
+    @FXML private Label cvByEmailLabel;     // Info-Label für "CV per E-Mail"
+    @FXML private Label cvByBusinessLink;   // Info-Label für "CV im Business-Profil"
+    @FXML private CheckBox businessLinkToggle; // Checkbox, um Business-Link-Feld anzuzeigen/verbergen
+    @FXML private TextField businessLinkField;  // Eingabefeld für Xing/LinkedIn etc.
+    // Die Labels cvLinkWarningLabel, cvLinkValidationLabel waren spezifisch für business-link Validierung, füge sie hinzu falls benötigt
+    // @FXML private Label cvLinkWarningLabel;
+    // @FXML private Label cvLinkValidationLabel;
 
-    @FXML private Label cvByEmailLabel;
-    @FXML private Label cvByBusinessLink;
-    @FXML private CheckBox businessLinkToggle;
-    @FXML private TextField businessLinkField;
+    // Personality and other fields
     @FXML private TextArea personalityTypArea;
+    @FXML private TextArea hobbiesField;
+    @FXML private TextArea projectExperienceField;
+    @FXML private TextArea miscellaneousField;
+    @FXML private Button submitButton;
 
-    // Skill checkboxes and percentage fields
+    // Skill fields
     @FXML private VBox customSkillsContainer;
     @FXML private Button addSkillButton;
-
-    // Backend skills
     @FXML private CheckBox javaCheckBox;
     @FXML private TextField javaPercentField;
     @FXML private CheckBox springCheckBox;
@@ -95,8 +100,7 @@ public class EmployeeNewRecommendationController {
     @FXML private CheckBox backendOtherCheckBox;
     @FXML private TextField backendOtherPercentField;
     @FXML private TextField backendOtherNameField;
-
-    // Frontend skills
+    // --- (Restliche Skill-Felder bleiben unverändert) ---
     @FXML private CheckBox angularCheckBox;
     @FXML private TextField angularPercentField;
     @FXML private CheckBox reactCheckBox;
@@ -106,8 +110,6 @@ public class EmployeeNewRecommendationController {
     @FXML private CheckBox frontendOtherCheckBox;
     @FXML private TextField frontendOtherPercentField;
     @FXML private TextField frontendOtherNameField;
-
-    // Database skills
     @FXML private CheckBox sqlCheckBox;
     @FXML private TextField sqlPercentField;
     @FXML private CheckBox mongoCheckBox;
@@ -115,8 +117,6 @@ public class EmployeeNewRecommendationController {
     @FXML private CheckBox databaseOtherCheckBox;
     @FXML private TextField databaseOtherPercentField;
     @FXML private TextField databaseOtherNameField;
-
-    // Build skills
     @FXML private CheckBox mavenCheckBox;
     @FXML private TextField mavenPercentField;
     @FXML private CheckBox gradleCheckBox;
@@ -124,8 +124,6 @@ public class EmployeeNewRecommendationController {
     @FXML private CheckBox buildOtherCheckBox;
     @FXML private TextField buildOtherPercentField;
     @FXML private TextField buildOtherNameField;
-
-    // CI/CD skills
     @FXML private CheckBox jenkinsCheckBox;
     @FXML private TextField jenkinsPercentField;
     @FXML private CheckBox azureCheckBox;
@@ -136,63 +134,48 @@ public class EmployeeNewRecommendationController {
     @FXML private TextField cicdOtherPercentField;
     @FXML private TextField cicdOtherNameField;
 
-    // Additional fields
-    @FXML private TextArea hobbiesField;
-    @FXML private TextArea projectExperienceField;
-    @FXML private TextArea miscellaneousField;
-    @FXML private Button submitButton;
 
+    // --- Service-Instanzen und Variablen ---
     private final BackendService backendService = new BackendService();
-    private final FormValidator formValidator = new FormValidator();
-    private String uploadedCvFilename;
+    private final FormValidator formValidator = new FormValidator(); // Stelle sicher, dass diese Klasse aktuell ist
+    private String uploadedCvFilename; // Speichert den Namen der hochgeladenen Datei vom Backend
 
-    // Service classes
+    // Service classes (angenommen, diese existieren und sind korrekt)
     private SkillFieldManager skillFieldManager;
     private DateValidators dateValidator;
     private FormBuilder formBuilder;
 
+
+    // --- Initialisierung ---
     @FXML
     private void initialize() {
         initializeRequiredFields();
         initializeServices();
-        initializeUIComponents();
+        initializeUIComponents(); // Beinhaltet jetzt auch ComboBox/DatePicker Initialisierung
         FocusTraversHelper.cancelFocusTravers(scrollPane.getContent());
-        updateCvPreviewIfExists();
-
-
-        // Listener für BusinessLink (optional für Live-Style-Änderung)
-        businessLinkToggle.selectedProperty().addListener((obs, ov, nv) -> handleBusinessLinkToggleChange());
-        businessLinkField.textProperty().addListener((obs, ov, nv) -> handleBusinessLinkToggleChange());
-
-        // updateCvPreviewIfExists(); // Behalten falls benötigt
-
-    
-
-    // Optional: Methode um Stil bei BusinessLink-Änderung live anzupassen
-    private void handleBusinessLinkToggleChange() {
-        // Ruft die Validierungslogik auf, aber ignoriert das Ergebnis hier.
-        // Wir wollen nur den Stil live anpassen, wenn es ungültig WIRD.
-        // Die *finale* Prüfung macht validateForm.
-        formValidator.validateOptionalBusinessLinkInternal(businessLinkField, businessLinkToggle, "Business-Profil-Link");
-        // Wichtig: Fehlerstil wird nur gesetzt, wenn die Prüfung fehlschlägt.
-        // Wenn es gültig wird, entfernt validateOptionalBusinessLinkInternal den Stil.
-
+        // updateCvPreviewIfExists(); // Diese Methode war fehlerhaft, erstmal auskommentieren oder korrigieren
+        addBusinessLinkListener(); // Listener für Business Link hinzufügen
     }
 
+    // --- Initialisierungs-Hilfsmethoden ---
 
     private void initializeRequiredFields() {
+        // Pflichtfelder für den Validator registrieren
         formValidator.addRequiredTextField(candidateFirstnameField);
         formValidator.addRequiredTextField(candidateLastnameField);
         formValidator.addRequiredComboBox(positionField);
+        // Füge hier ggf. weitere Pflichtfelder hinzu
     }
 
     private void initializeServices() {
+        // Instanziiere Hilfsklassen
         skillFieldManager = new SkillFieldManager();
         dateValidator = new DateValidators();
         formBuilder = new FormBuilder(customSkillsContainer, scrollPane);
     }
 
     private void initializeUIComponents() {
+        // Ruft die Unter-Initialisierungen auf
         initializeValidators();
         initializeSkillFields();
         initializeComboBoxes();
@@ -200,50 +183,46 @@ public class EmployeeNewRecommendationController {
     }
 
     private void initializeValidators() {
-        // Setup validators for numeric fields
-        formValidator.setupDecimalField(experienceYearsField, 0.0, 99.9, "Berufserfahrung in Jahren");
+        // Richte Validatoren für numerische Felder und E-Mail ein
+        formValidator.setupDecimalField(experienceYearsField, 0.0, 99.9, "Berufserfahrung");
         formValidator.setupNumericField(salaryExpectationField, 1, 500000, "Gehalt");
         formValidator.setupNumericField(travelWillingnessField, 0, 100, "Reisebereitschaft");
-        formValidator.setupEmailField(emailField, emailFeedbackLabel);
+        formValidator.setupEmailField(emailField, emailFeedbackLabel); // Verwendet das Feedback-Label
+        // Füge hier ggf. Validatoren für andere Felder hinzu (z.B. Telefonnummer)
     }
 
     private void initializeSkillFields() {
+        // Richte die Logik für Skill-Checkboxen und Prozentfelder ein
         Map<CheckBox, TextField[]> skillFields = createSkillFieldsMap();
-
         skillFields.forEach((checkbox, fields) -> {
             skillFieldManager.setupSkillCheckbox(checkbox, fields[0], fields[1]);
             if (fields[0] != null) {
-                formValidator.setupNumericField(fields[0], 0, 100, "Kenntnisgrad (%)");
+                // Stelle sicher, dass der Validator auch für diese Felder aufgerufen wird
+                formValidator.setupNumericField(fields[0], 0, 100, "Kenntnisgrad (%) für " + checkbox.getText());
             }
         });
     }
 
     private Map<CheckBox, TextField[]> createSkillFieldsMap() {
+        // Erstellt die Map für die Skill-Felder (unverändert)
         Map<CheckBox, TextField[]> skillFields = new HashMap<>();
-
-        // Map all skill checkboxes to their corresponding percentage and name fields
         addSkillMapping(skillFields, javaCheckBox, javaPercentField, null);
         addSkillMapping(skillFields, springCheckBox, springPercentField, null);
         addSkillMapping(skillFields, backendOtherCheckBox, backendOtherPercentField, backendOtherNameField);
-
         addSkillMapping(skillFields, angularCheckBox, angularPercentField, null);
         addSkillMapping(skillFields, reactCheckBox, reactPercentField, null);
         addSkillMapping(skillFields, vueCheckBox, vuePercentField, null);
         addSkillMapping(skillFields, frontendOtherCheckBox, frontendOtherPercentField, frontendOtherNameField);
-
         addSkillMapping(skillFields, sqlCheckBox, sqlPercentField, null);
         addSkillMapping(skillFields, mongoCheckBox, mongoPercentField, null);
         addSkillMapping(skillFields, databaseOtherCheckBox, databaseOtherPercentField, databaseOtherNameField);
-
         addSkillMapping(skillFields, mavenCheckBox, mavenPercentField, null);
         addSkillMapping(skillFields, gradleCheckBox, gradlePercentField, null);
         addSkillMapping(skillFields, buildOtherCheckBox, buildOtherPercentField, buildOtherNameField);
-
         addSkillMapping(skillFields, jenkinsCheckBox, jenkinsPercentField, null);
         addSkillMapping(skillFields, azureCheckBox, azurePercentField, null);
         addSkillMapping(skillFields, bambooCheckBox, bambooPercentField, null);
         addSkillMapping(skillFields, cicdOtherCheckBox, cicdOtherPercentField, cicdOtherNameField);
-
         return skillFields;
     }
 
@@ -252,12 +231,12 @@ public class EmployeeNewRecommendationController {
     }
 
     private void initializeComboBoxes() {
-        // Setup position field
+        // Befülle die Positions-ComboBox
         positionField.getItems().addAll(
                 "Junior Developer", "Mid-Level Developer", "Senior Developer", "Team Lead", "Architekt"
         );
 
-        // Setup employment status combo box
+        // Logik für die Anstellungsstatus-ComboBox
         employmentStatusCombo.setOnAction(e -> {
             String status = employmentStatusCombo.getValue();
             boolean isEmployed = "In Anstellung".equals(status);
@@ -265,52 +244,49 @@ public class EmployeeNewRecommendationController {
             UIUtils.setVisibilityAndManaged(lastPositionBox, !isEmployed);
         });
 
-        // Setup CV choice combo box
+        // Logik für die CV-Auswahl-ComboBox
         cvChoiceCombo.setOnAction(e -> {
             String selected = cvChoiceCombo.getValue();
+            boolean isUpload = "CV hochladen".equals(selected);
+            boolean isEmail = "CV per E-Mail".equals(selected);
+            boolean isBusinessLinkCv = "CV im Business-Profil-Link enthalten".equals(selected);
 
-            uploadCvButton.setVisible("CV hochladen".equals(selected));
-            cvByEmailLabel.setVisible("CV per E-Mail".equals(selected));
-            cvByBusinessLink.setVisible("CV im Business-Profil-Link enthalten".equals(selected));
+            uploadCvButton.setVisible(isUpload);
+            cvByEmailLabel.setVisible(isEmail);
+            cvByBusinessLink.setVisible(isBusinessLinkCv);
 
-            // Direkt anzeigen
-            boolean isBusinessProfile = "CV im Business-Profil-Link enthalten".equals(selected);
+            // Business-Link Felder immer anzeigen/verbergen basierend auf der Checkbox,
+            // ABER die Checkbox selbst nur anzeigen, wenn NICHT "CV im Business-Profil" gewählt ist.
+            businessLinkToggle.setVisible(!isBusinessLinkCv);
+            // Das Textfeld für den Link ist nur sichtbar, wenn die Checkbox UND der Toggle aktiv sind,
+            // ODER wenn "CV im Business-Profil" gewählt ist.
+            businessLinkField.setVisible(isBusinessLinkCv || businessLinkToggle.isSelected());
 
-            businessLinkToggle.setVisible(!isBusinessProfile);
-            businessLinkField.setVisible(isBusinessProfile);
-
-            documentCvField.setVisible(isBusinessProfile);
-            cvLinkToggle.setVisible(!isBusinessProfile);
-
-
-            if (!"CV hochladen".equals(selected)) {
-                uploadedCvFilename = null;
-                cvPreviewBox.setVisible(false);
+            // Wenn eine andere Option als Upload gewählt wird, den Upload-Status zurücksetzen
+            if (!isUpload) {
+                clearCvUpload(); // Eigene Methode zum Aufräumen
             }
-
         });
 
-
-
-         // Business-Link  toggle
+        // Initialisiere den Business-Link Toggle Listener
         businessLinkToggle.setOnAction(e -> businessLinkField.setVisible(businessLinkToggle.isSelected()));
+        // Setze initialen Zustand des Business Link Feldes basierend auf Toggle (falls schon gecheckt)
+        businessLinkField.setVisible(businessLinkToggle.isSelected());
     }
 
     private void initializeDatePickers() {
-        // Setup date validation
+        // Richte Datumsvalidierungen und Abhängigkeiten ein
         dateValidator.setupDateValidation(contactDatePicker, "Erstkontakt-Datum", true);
         dateValidator.setupDateValidation(convincedCandidateDatePicker, "Überzeugt-Datum", true);
         dateValidator.setupDateValidation(noticePeriodDatePicker, "Kündigungsfrist", false);
         dateValidator.setupDateValidation(startDatePicker, "Startdatum", false);
-
-        // Setup date dependencies
-        dateValidator.setupDateDependency(contactDatePicker, convincedCandidateDatePicker,
-                "Kontakt-Datum", "Überzeugt-Datum");
-        dateValidator.setupDateDependency(contactDatePicker, startDatePicker,
-                "Kontakt-Datum", "Startdatum");
-        dateValidator.setupDateDependency(noticePeriodDatePicker, startDatePicker,
-                "Kündigungsfrist", "Startdatum");
+        dateValidator.setupDateDependency(contactDatePicker, convincedCandidateDatePicker, "Kontakt-Datum", "Überzeugt-Datum");
+        dateValidator.setupDateDependency(contactDatePicker, startDatePicker, "Kontakt-Datum", "Startdatum");
+        dateValidator.setupDateDependency(noticePeriodDatePicker, startDatePicker, "Kündigungsfrist", "Startdatum");
     }
+
+
+    // --- Event Handlers ---
 
     @FXML
     private void handleAddCustomSkill(ActionEvent event) {
@@ -319,6 +295,7 @@ public class EmployeeNewRecommendationController {
 
     @FXML
     private void handleBrowseCV(ActionEvent event) {
+        // Öffnet den FileChooser und startet den Upload
         File selectedFile = selectCVFile();
         if (selectedFile != null) {
             uploadCV(selectedFile);
@@ -326,160 +303,158 @@ public class EmployeeNewRecommendationController {
     }
 
     private File selectCVFile() {
+        // Konfiguriert und zeigt den FileChooser
         FileChooser fileChooser = new FileChooser();
-        fileChooser.setTitle("CV auswählen");
-        fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("PDF", "*.pdf"));
-        return fileChooser.showOpenDialog(null);
+        fileChooser.setTitle("Lebenslauf (CV) auswählen");
+        fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("PDF Dokumente", "*.pdf"));
+        // Optional: Startverzeichnis setzen
+        // fileChooser.setInitialDirectory(new File(System.getProperty("user.home")));
+        return fileChooser.showOpenDialog(null); // null => Standardfenster
     }
 
     private void uploadCV(File file) {
-        MultipartUtils.uploadFile(file, savedFilename -> Platform.runLater(() -> {
-       
-            uploadedCvFilename = savedFilename;
+        // Ruft den MultipartUpload auf und aktualisiert die UI bei Erfolg
+        // Annahme: MultipartUtils.uploadFile gibt den *vom Server gespeicherten Pfad/Namen* zurück
+        MultipartUtils.uploadFile(file, savedFilename -> {
+            if (savedFilename != null && !savedFilename.isBlank()) {
+                Platform.runLater(() -> {
+                    uploadedCvFilename = savedFilename; // Speichere den Server-Pfad/Namen
+                    showCvPreview(file.getName()); // Zeige Vorschau mit Originalnamen
+                });
+            } else {
+                // Fehler beim Upload anzeigen
+                Platform.runLater(() -> DialogUtil.showError("Upload Fehler", "Datei konnte nicht hochgeladen werden."));
+                clearCvUpload();
+            }
+        }, error -> {
+            // Detaillierterer Fehler beim Upload
+            Platform.runLater(() -> DialogUtil.showError("Upload Fehler", "Fehler: " + error));
+            clearCvUpload();
+        });
+    }
 
-            documentCvField.setText(file.getAbsolutePath());
-            uploadedCvFilename = file.getAbsolutePath();
-
-        }));
+    private void showCvPreview(String originalFileName) {
+        // Aktualisiert die UI, um die hochgeladene Datei anzuzeigen
         cvPreviewBox.setVisible(true);
-        cvIcon.setImage(new Image(getClass().getResourceAsStream("/images/pdf-icon.png")));
-        cvLink.setText(file.getName());
-
-
+        // Setze Icon (Pfad zu deinem Icon anpassen!)
+        try {
+            cvIcon.setImage(new Image(getClass().getResourceAsStream("/images/pdf-icon.png"), 18, 18, true, true));
+        } catch (Exception e) {
+            System.err.println("PDF Icon nicht gefunden!");
+            // Optional: Fallback-Icon oder Text
+        }
+        cvLink.setText(originalFileName); // Zeige den Originalnamen im Link
     }
+
     @FXML
     private void handleOpenUploadedCV(ActionEvent event) {
-        if (uploadedCvFilename == null || uploadedCvFilename.isBlank()) return;
-
-        try {
-            File pdf = new File(uploadedCvFilename);
-            if (pdf.exists()) {
-                Desktop.getDesktop().open(pdf);
-            } else {
-                DialogUtil.showError("Datei nicht gefunden", "Die hochgeladene Datei konnte nicht gefunden werden.");
+        // Versucht, die hochgeladene Datei zu öffnen (Vorschau)
+        // Diese Methode macht jetzt weniger Sinn, wenn wir den Server-Pfad speichern.
+        // Besser wäre, den FileDownloadService zu nutzen, um die Datei anzuzeigen.
+        // Aktuell versucht es, eine lokale Datei zu öffnen, was nur direkt nach dem Upload klappt.
+        if (uploadedCvFilename != null && !uploadedCvFilename.isBlank()) {
+            // TODO: Implementiere Vorschau über FileDownloadService.previewFile(uploadedCvFilename)
+            DialogUtil.showInfo("Info", "Vorschau-Funktion noch nicht implementiert.\nGespeicherter Pfad: " + uploadedCvFilename);
+            /*
+            try {
+                File pdf = new File(uploadedCvFilename); // Funktioniert nur, wenn es der *lokale* Pfad ist!
+                if (pdf.exists()) {
+                    Desktop.getDesktop().open(pdf);
+                } else {
+                    DialogUtil.showError("Datei nicht gefunden", "Die hochgeladene Datei konnte lokal nicht gefunden werden.");
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+                DialogUtil.showError("Fehler beim Öffnen", "Die Datei konnte nicht geöffnet werden.");
             }
-        } catch (Exception e) {
-            e.printStackTrace();
-            DialogUtil.showError("Fehler beim Öffnen", "Die Datei konnte nicht geöffnet werden.");
-        }
-    }
-
-
-    private void updateCvPreviewIfExists() {
-        String selected = cvChoiceCombo.getValue();
-        if (!"CV hochladen".equals(selected)) return;
-
-       String filePath = uploadedCvFilename;
-        File file = new File(filePath);
-
-        if (file.exists()) {
-            cvIcon.setImage(new Image(getClass().getResourceAsStream("/images/pdf-icon.png")));
-            cvLink.setText(file.getName());
-            cvPreviewBox.setVisible(true);
+            */
         } else {
-            System.err.println("CV nicht gefunden: " + filePath);
+            DialogUtil.showInfo("Keine Datei", "Es wurde noch kein Lebenslauf hochgeladen.");
         }
     }
-      
-      
-    @FXML
-    private void handleOpenUploadedCV(ActionEvent event) {
-        if (uploadedCvFilename == null || uploadedCvFilename.isBlank()) return;
-
-        try {
-            File pdf = new File(uploadedCvFilename);
-            if (pdf.exists()) {
-                Desktop.getDesktop().open(pdf);
-            } else {
-                DialogUtil.showError("Datei nicht gefunden", "Die hochgeladene Datei konnte nicht gefunden werden.");
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-            DialogUtil.showError("Fehler beim Öffnen", "Die Datei konnte nicht geöffnet werden.");
-        }
-    }
-
-
-    private void updateCvPreviewIfExists() {
-        String selected = cvChoiceCombo.getValue();
-        if (!"CV hochladen".equals(selected)) return;
-
-        String filePath = documentCvField.getText();
-        File file = new File(filePath);
-
-        if (file.exists()) {
-            cvIcon.setImage(new Image(getClass().getResourceAsStream("/images/pdf-icon.png")));
-            cvLink.setText(file.getName());
-            uploadedCvFilename = filePath;
-            cvPreviewBox.setVisible(true);
-        } else {
-            System.err.println("CV nicht gefunden: " + filePath);
-        }
-    }
-
 
 
     @FXML
     private void handleRemoveCVPreview(ActionEvent event) {
-        uploadedCvFilename = null;
-        documentCvField.clear();
-        cvPreviewBox.setVisible(false);
+        // Entfernt die Vorschau und den gespeicherten Dateinamen
+        clearCvUpload();
     }
 
-
-
-
-
-    @FXML
-    private void handleRemoveCVPreview(ActionEvent event) {
+    private void clearCvUpload() {
+        // Setzt den CV-Upload-Status zurück
         uploadedCvFilename = null;
         cvPreviewBox.setVisible(false);
+        cvLink.setText(""); // Link-Text leeren
+        // Optional: Wenn cvChoiceCombo auf "CV hochladen" steht, zurücksetzen?
+        // if ("CV hochladen".equals(cvChoiceCombo.getValue())) {
+        //    cvChoiceCombo.getSelectionModel().clearSelection();
+        //}
     }
 
+    // Methode für Echtzeit-Feedback (optional, aber empfohlen)
+    private void addBusinessLinkListener() {
+        // 1. Listener für die Checkbox (wenn sie an-/ausgewählt wird)
+        businessLinkToggle.selectedProperty().addListener((obs, ov, nv) -> handleBusinessLinkToggleChange());
+
+        // 2. Listener für das Textfeld (wenn sich der Text darin ändert)
+        businessLinkField.textProperty().addListener((obs, ov, nv) -> handleBusinessLinkToggleChange());
+    }
+
+    // Methode für die Listener der Business-Link-Felder
+    private void handleBusinessLinkToggleChange() {
+        boolean toggleSelected = businessLinkToggle.isSelected();
+        businessLinkField.setVisible(toggleSelected); // Zeige Feld nur wenn Toggle aktiv
+
+        // Optional: Rufe Live-Validierung auf, wenn das Feld sichtbar wird oder sich ändert
+        if (toggleSelected) {
+            // Führe Validierung durch (nur Stil ändern, keine Popup-Meldung)
+            formValidator.validateOptionalBusinessLinkInternal(businessLinkField, businessLinkToggle, "Business-Profil-Link");
+        } else {
+            // Entferne Fehlerstil, wenn Toggle deaktiviert wird
+            formValidator.removeErrorStyle(businessLinkField);
+        }
+    }
 
 
     @FXML
     private void handleSaveRecommendation(ActionEvent event) {
-        // Rufe die zentrale Validierungsmethode auf
-        // Übergib alle Felder, die spezielle Prüfungen benötigen
+        // Führe die Validierung durch (stelle sicher, dass validateForm aktuell ist)
         boolean isFormValid = formValidator.validateForm(
                 scrollPane,
-                businessLinkField,
+                businessLinkField, // Übergib die Referenzen
                 businessLinkToggle,
                 emailField
-                // Füge hier weitere Felder für spezielle Prüfungen hinzu, falls nötig
+                // Füge hier weitere Felder für spezielle Prüfungen hinzu (z.B. Prozentfelder)
         );
 
         if (!isFormValid) {
-            // Die Fehlermeldung und das Scrollen werden jetzt vom FormValidator erledigt
-            System.out.println("Validierung fehlgeschlagen."); // Log
+            // Fehler wurden bereits durch den Validator angezeigt (Dialog + Scrollen)
+            System.out.println("Validierung fehlgeschlagen.");
             return; // Abbrechen
         }
 
-        // Wenn die Validierung erfolgreich war:
-        System.out.println("Validierung erfolgreich."); // Log
+        // Validierung erfolgreich, erstelle DTO und sende
+        System.out.println("Validierung erfolgreich.");
         RecommendationRequestDTO dto = createRecommendationDTO();
         submitRecommendation(event, dto);
     }
 
     private void submitRecommendation(ActionEvent event, RecommendationRequestDTO dto) {
+        // Ruft den BackendService auf
         backendService.submitRecommendation(dto)
-                // Annahme: submitRecommendation gibt CompletableFuture<HttpResponse> zurück
-                .thenAccept(response -> handleSubmissionResponse(event, response)) // response ist hier vom Typ HttpResponse
+                .thenAccept(response -> handleSubmissionResponse(event, response))
                 .exceptionally(e -> handleSubmissionError(e));
     }
 
-    private void handleSubmissionResponse(ActionEvent event, HttpResponse response) { // response ist vom Typ deiner HttpResponse
-        // Verwende den Getter oder die isSuccess-Methode
-        // if (response.getStatusCode() == 200) { // Gültig
-        if (response.isSuccess()) { // Bevorzugt, wenn isSuccess() existiert
+    private void handleSubmissionResponse(ActionEvent event, HttpResponse response) {
+        // Verarbeitet die Antwort vom Backend (unverändert gut)
+        if (response.isSuccess()) {
             Platform.runLater(() -> {
                 DialogUtil.showInfo("Erfolg", "Empfehlung erfolgreich gespeichert!");
                 SceneUtil.switchScene(event, "/com/krouna/empfehlungsapp_javafx/employee-dashboard-view.fxml", 0.8);
             });
         } else {
             Platform.runLater(() -> {
-                // Optional: Zeige Details aus der Antwort an
                 String errorDetails = "Fehler beim Speichern!";
                 if (response.getBody() != null && !response.getBody().isBlank()){
                     errorDetails += "\nServerantwort: " + response.getBody();
@@ -492,28 +467,30 @@ public class EmployeeNewRecommendationController {
     }
 
     private Void handleSubmissionError(Throwable e) {
+        // Behandelt Netzwerk-/Verbindungsfehler (unverändert gut)
         e.printStackTrace();
         Platform.runLater(() -> DialogUtil.showError("Fehler", "Fehler bei der Anfrage: " + e.getMessage()));
         return null;
     }
 
 
+    // --- DTO Erstellung ---
     private RecommendationRequestDTO createRecommendationDTO() {
+        // Sammelt Daten aus den UI-Feldern und erstellt das DTO
         RecommendationRequestDTO dto = new RecommendationRequestDTO();
-
         setBasicInfo(dto);
         setEmploymentInfo(dto);
         setInformationStatus(dto);
         setCareerDetails(dto);
-        setCVDetails(dto);
+        setCVDetails(dto); // Stellt sicher, dass der korrekte CV-Pfad/Link gesetzt wird
         setAdditionalInfo(dto);
         setSkillDetails(dto);
-
         return dto;
     }
 
+    // --- Hilfsmethoden zur DTO-Befüllung (unverändert gut) ---
     private void setBasicInfo(RecommendationRequestDTO dto) {
-        dto.setUserId(UserSession.getInstance().getUserId());
+        // dto.setUserId(...); // Wird jetzt serverseitig gesetzt, hier nicht nötig
         dto.setCandidateFirstname(candidateFirstnameField.getText().trim());
         dto.setCandidateLastname(candidateLastnameField.getText().trim());
         dto.setEmail(emailField.getText().trim());
@@ -525,10 +502,14 @@ public class EmployeeNewRecommendationController {
 
     private void setEmploymentInfo(RecommendationRequestDTO dto) {
         dto.setEmploymentStatus(employmentStatusCombo.getValue());
-        dto.setCurrentPosition(currentPositionField.getText().trim());
-        dto.setCurrentCareerLevel(currentCareerLevelField.getText().trim());
-        dto.setLastPosition(lastPositionField.getText().trim());
-        dto.setLastCareerLevel(lastCareerLevelField.getText().trim());
+        if (currentPositionBox.isVisible()) { // Nur setzen, wenn sichtbar
+            dto.setCurrentPosition(currentPositionField.getText().trim());
+            dto.setCurrentCareerLevel(currentCareerLevelField.getText().trim());
+        }
+        if (lastPositionBox.isVisible()) { // Nur setzen, wenn sichtbar
+            dto.setLastPosition(lastPositionField.getText().trim());
+            dto.setLastCareerLevel(lastCareerLevelField.getText().trim());
+        }
     }
 
     private void setInformationStatus(RecommendationRequestDTO dto) {
@@ -544,23 +525,41 @@ public class EmployeeNewRecommendationController {
 
     private void setCareerDetails(RecommendationRequestDTO dto) {
         String experienceText = experienceYearsField.getText().trim().replace(",", ".");
-        dto.setExperienceYears(experienceText.isEmpty() ? null : Double.parseDouble(experienceText));
+        try {
+            dto.setExperienceYears(experienceText.isEmpty() ? null : Double.parseDouble(experienceText));
+        } catch (NumberFormatException e) { dto.setExperienceYears(null); /* Fehler oder Standardwert */ }
         dto.setPosition(positionField.getValue());
         dto.setNoticePeriod(noticePeriodDatePicker.getValue());
         dto.setStartDate(startDatePicker.getValue());
-
-        String salaryText = salaryExpectationField.getText().trim();
-        dto.setSalaryExpectation(salaryText.isEmpty() ? null : Integer.parseInt(salaryText));
+        try {
+            String salaryText = salaryExpectationField.getText().trim().replaceAll("[^\\d]", ""); // Nur Ziffern behalten
+            dto.setSalaryExpectation(salaryText.isEmpty() ? null : Integer.parseInt(salaryText));
+        } catch (NumberFormatException e) { dto.setSalaryExpectation(null); }
         dto.setWorkHours(workHoursField.getText().trim());
-
-        String travelText = travelWillingnessField.getText().trim();
-        dto.setTravelWillingness(travelText.isEmpty() ? null : Integer.parseInt(travelText));
+        try {
+            String travelText = travelWillingnessField.getText().trim().replaceAll("[^\\d]", "");
+            dto.setTravelWillingness(travelText.isEmpty() ? null : Integer.parseInt(travelText));
+        } catch (NumberFormatException e) { dto.setTravelWillingness(null); }
     }
 
     private void setCVDetails(RecommendationRequestDTO dto) {
-        dto.setCvChoice(cvChoiceCombo.getValue());
-        dto.setDocumentCvPath(uploadedCvFilename);
-        dto.setBusinessLink(businessLinkField.getText().trim());
+        // Setzt die Auswahl und den Pfad/Link basierend auf der UI
+        String choice = cvChoiceCombo.getValue();
+        dto.setCvChoice(choice);
+
+        // Setze den Pfad nur, wenn "CV hochladen" gewählt wurde UND ein Upload stattgefunden hat
+        if ("CV hochladen".equals(choice) && uploadedCvFilename != null && !uploadedCvFilename.isBlank()) {
+            dto.setDocumentCvPath(uploadedCvFilename);
+        } else {
+            dto.setDocumentCvPath(null); // Ansonsten keinen Pfad senden
+        }
+
+        // Setze den Business-Link nur, wenn das Feld sichtbar ist und Text enthält
+        if (businessLinkField.isVisible() && !businessLinkField.getText().trim().isEmpty()) {
+            dto.setBusinessLink(businessLinkField.getText().trim());
+        } else {
+            dto.setBusinessLink(null);
+        }
     }
 
     private void setAdditionalInfo(RecommendationRequestDTO dto) {
@@ -571,75 +570,76 @@ public class EmployeeNewRecommendationController {
     }
 
     private void setSkillDetails(RecommendationRequestDTO dto) {
+        // Extrahiert die Skills (unverändert)
         dto.setBackendSkills(extractSkillsFromFields(
                 new SkillInput(javaCheckBox, javaPercentField),
                 new SkillInput(springCheckBox, springPercentField),
                 new SkillInput(backendOtherCheckBox, backendOtherPercentField, backendOtherNameField)
         ));
-
         dto.setFrontendSkills(extractSkillsFromFields(
                 new SkillInput(angularCheckBox, angularPercentField),
                 new SkillInput(reactCheckBox, reactPercentField),
                 new SkillInput(vueCheckBox, vuePercentField),
                 new SkillInput(frontendOtherCheckBox, frontendOtherPercentField, frontendOtherNameField)
         ));
-
         dto.setDatabaseSkills(extractSkillsFromFields(
                 new SkillInput(sqlCheckBox, sqlPercentField),
                 new SkillInput(mongoCheckBox, mongoPercentField),
                 new SkillInput(databaseOtherCheckBox, databaseOtherPercentField, databaseOtherNameField)
         ));
-
         dto.setBuildSkills(extractSkillsFromFields(
                 new SkillInput(mavenCheckBox, mavenPercentField),
                 new SkillInput(gradleCheckBox, gradlePercentField),
                 new SkillInput(buildOtherCheckBox, buildOtherPercentField, buildOtherNameField)
         ));
-
         dto.setCicdSkills(extractSkillsFromFields(
                 new SkillInput(jenkinsCheckBox, jenkinsPercentField),
                 new SkillInput(azureCheckBox, azurePercentField),
                 new SkillInput(bambooCheckBox, bambooPercentField),
                 new SkillInput(cicdOtherCheckBox, cicdOtherPercentField, cicdOtherNameField)
         ));
-
         dto.setCustomSkills(extractCustomSkills());
-
     }
 
     private List<RecommendationRequestDTO.SkillEntry> extractSkillsFromFields(SkillInput... skillInputs) {
+        // Extrahiert Standard-Skills (unverändert)
         List<RecommendationRequestDTO.SkillEntry> skills = new ArrayList<>();
-
         for (SkillInput input : skillInputs) {
             CheckBox checkBox = input.getCheckBox();
             TextField percentField = input.getPercentField();
             TextField nameField = input.getNameField();
+            if (!checkBox.isSelected()) continue; // Nur ausgewählte Skills berücksichtigen
 
             String name = (nameField != null && nameField.isVisible() && !nameField.getText().isEmpty())
                     ? nameField.getText().trim()
                     : checkBox.getText();
 
             int percentage = 0;
-            if (checkBox.isSelected() && !percentField.getText().isEmpty()) {
+            // Prozentwert nur holen, wenn Feld sichtbar und nicht leer
+            if (percentField != null && percentField.isVisible() && !percentField.getText().isEmpty()) {
                 try {
                     percentage = Integer.parseInt(percentField.getText().trim());
+                    // Optional: Bereichsprüfung 0-100
+                    percentage = Math.max(0, Math.min(100, percentage));
                 } catch (NumberFormatException e) {
-                    System.out.println("Ungültiger Prozentwert für Skill: " + name);
+                    System.out.println("Ungültiger Prozentwert für Skill: " + name + ", setze auf 0.");
                 }
+            } else if (nameField != null && nameField.isVisible()){
+                // Falls nur "Anderer Skill" ohne Prozentfeld, setze 0 oder einen Standardwert
+                percentage = 0; // Oder z.B. 1, wenn Anwesenheit > 0 bedeuten soll
             }
 
             skills.add(new RecommendationRequestDTO.SkillEntry(name, percentage));
         }
-
         return skills;
     }
 
-
     private List<RecommendationRequestDTO.SkillEntry> extractCustomSkills() {
+        // Extrahiert benutzerdefinierte Skills (unverändert)
         List<RecommendationRequestDTO.SkillEntry> skills = new ArrayList<>();
-
         for (Node node : customSkillsContainer.getChildren()) {
             if (node instanceof HBox hbox && hbox.getChildren().size() >= 3) {
+                // Annahme: Reihenfolge ist Technologie, Name, Prozent
                 TextField techField = (TextField) hbox.getChildren().get(0);
                 TextField nameField = (TextField) hbox.getChildren().get(1);
                 TextField percentField = (TextField) hbox.getChildren().get(2);
@@ -648,26 +648,28 @@ public class EmployeeNewRecommendationController {
                 String name = nameField.getText().trim();
                 String percentText = percentField.getText().trim();
 
-                if (!name.isEmpty() && !percentText.isEmpty()) {
-                    try {
-                        int percentage = Integer.parseInt(percentText);
-                        skills.add(new RecommendationRequestDTO.SkillEntry(name, percentage, tech));
-                    } catch (NumberFormatException e) {
-                        System.out.println("Ungültiger Prozentwert bei Custom-Skill: " + percentText);
+                if (!name.isEmpty()) { // Name muss vorhanden sein
+                    int percentage = 0;
+                    if (!percentText.isEmpty()) {
+                        try {
+                            percentage = Integer.parseInt(percentText);
+                            percentage = Math.max(0, Math.min(100, percentage));
+                        } catch (NumberFormatException e) {
+                            System.out.println("Ungültiger Prozentwert bei Custom-Skill: " + name + ", setze auf 0.");
+                        }
                     }
+                    skills.add(new RecommendationRequestDTO.SkillEntry(name, percentage, tech));
                 }
             }
         }
-
         return skills;
     }
 
 
-
-
-
+    // --- Navigation ---
     @FXML
     private void handleBack(ActionEvent event) {
+        // Navigiert zurück zum Dashboard
         SceneUtil.switchScene(event, "/com/krouna/empfehlungsapp_javafx/employee-dashboard-view.fxml", 0.8);
     }
 }
