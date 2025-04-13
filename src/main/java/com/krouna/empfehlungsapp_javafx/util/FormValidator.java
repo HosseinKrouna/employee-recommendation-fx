@@ -6,12 +6,16 @@ import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.Region;
+import org.springframework.expression.ParseException;
 
 // Imports für URL-Validierung und Alert
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.function.UnaryOperator;
 import java.util.regex.Pattern;
 
@@ -20,123 +24,267 @@ public class FormValidator {
     private final List<TextInputControl> requiredTextFields = new ArrayList<>();
     private final List<ComboBox<?>> requiredComboBoxes = new ArrayList<>();
 
-    // Neue Listen zum Sammeln ALLER Fehler bei der finalen Prüfung
+    // Listen zum Sammeln ALLER Fehler bei der finalen Prüfung
     private final List<String> errorMessages = new ArrayList<>();
     private final List<Control> errorControls = new ArrayList<>(); // Speichert Controls mit Fehlern
 
-    // --- Bestehende Methoden zum Hinzufügen von Pflichtfeldern ---
+
+    // Liste und Record für numerische Bereichsprüfung
+    private record NumericRangeField(TextField field, int min, int max, String fieldName, boolean required) {}
+    private final List<NumericRangeField> numericRangeFields = new ArrayList<>();
+
+    private record DecimalRangeField(TextField field, double min, double max, String fieldName, boolean required) {}
+    private final List<DecimalRangeField> decimalRangeFields = new ArrayList<>();
+
+    // Formatierer, der sowohl Punkt als auch Komma als Dezimaltrenner versteht (gebietsschema-unabhängig)
+    // Wir verwenden Locale.US für Punkt als Trenner intern, erlauben aber Komma bei Eingabe
+    private static final NumberFormat DECIMAL_FORMAT = DecimalFormat.getNumberInstance(Locale.US);
+
+    // --- Methoden zum Registrieren von Validierungen ---
+
     public void addRequiredTextField(TextInputControl field) {
         requiredTextFields.add(field);
-        // Optional: Listener hinzufügen, um Fehlerstil zu entfernen, wenn getippt wird
         field.textProperty().addListener((obs, oldVal, newVal) -> removeErrorStyleOnChange(field));
     }
 
     public void addRequiredComboBox(ComboBox<?> comboBox) {
         requiredComboBoxes.add(comboBox);
-        // Optional: Listener hinzufügen
         comboBox.valueProperty().addListener((obs, oldVal, newVal) -> removeErrorStyleOnChange(comboBox));
     }
 
-    // --- Hilfsmethode zum Entfernen des Fehlerstils bei Eingabe ---
-    private void removeErrorStyleOnChange(Control control) {
-        // Nur entfernen, wenn es aktuell rot markiert ist
-        if (control.getStyle() != null && control.getStyle().contains("-fx-border-color: red;")) {
-            control.setStyle(null); // Oder Standardstil wiederherstellen
+
+    public void addNumericRangeValidation(TextField field, int min, int max, String fieldName, boolean isRequired) {
+        numericRangeFields.add(new NumericRangeField(field, min, max, fieldName, isRequired));
+        setupNumericFieldWithLiveRangeCheck(field, min, max, fieldName, isRequired);
+    }
+
+
+    // --- Setup-Methoden mit Live-Validierung/Formatierung ---
+
+    public void addDecimalRangeValidation(TextField field, double min, double max, String fieldName, boolean isRequired) {
+        decimalRangeFields.add(new DecimalRangeField(field, min, max, fieldName, isRequired));
+        setupDecimalFieldWithLiveRangeCheck(field, min, max, fieldName, isRequired);
+    }
+
+    public void setupNumericFieldWithLiveRangeCheck(TextField field, int min, int max, String fieldName, boolean isRequired) {
+        // 1. TextFormatter (filtert ungültige Zeichen)
+        UnaryOperator<TextFormatter.Change> charFilter = change -> {
+            String newText = change.getControlNewText();
+            // Erlaube leere Eingabe oder nur Ziffern
+            if (newText.isEmpty() || Pattern.matches("\\d*", newText)) {
+                return change;
+            }
+            return null; // Blockiere andere Zeichen
+        };
+        field.setTextFormatter(new TextFormatter<>(charFilter));
+
+        // 2. Listener für LIVE Bereichsprüfung
+        field.textProperty().addListener((observable, oldValue, newValue) -> {
+            validateNumericFieldLive(field, min, max, fieldName, isRequired);
+        });
+
+        // 3. Listener für Fokusverlust
+        field.focusedProperty().addListener((observable, oldVal, newVal) -> {
+            if (!newVal) { // Fokus verloren
+                validateNumericFieldLive(field, min, max, fieldName, isRequired);
+            }
+        });
+    }
+
+    public void setupDecimalFieldWithLiveRangeCheck(TextField field, double min, double max, String fieldName, boolean isRequired) {
+        // 1. TextFormatter (erlaubt Ziffern, Punkt, Komma, nur ein Trenner)
+        UnaryOperator<TextFormatter.Change> charFilter = change -> {
+            String currentText = change.getControlText();
+            String newText = change.getControlNewText();
+            if (newText.isEmpty()) return change;
+            // Erlaube nur Ziffern, Punkt oder Komma
+            if (!Pattern.matches("^[\\d.,]*$", newText)) return null;
+            // Ersetze Komma durch Punkt für interne Prüfung der Trennzeichen
+            String checkText = newText.replace(',', '.');
+            // Erlaube nur EINEN Punkt
+            if (checkText.indexOf('.') != checkText.lastIndexOf('.')) return null;
+            // Erlaube Punkt/Komma nicht am Anfang, wenn schon Text da ist (optional)
+            // if ((newText.endsWith(".") || newText.endsWith(",")) && newText.length() > 1 && !Character.isDigit(newText.charAt(newText.length()-2))) return null;
+
+            // Erlaube die Änderung (finale Wertprüfung im Listener)
+            return change;
+        };
+        field.setTextFormatter(new TextFormatter<>(charFilter));
+
+        // 2. Listener für LIVE Bereichsprüfung
+        field.textProperty().addListener((observable, oldValue, newValue) -> {
+            validateDecimalFieldLive(field, min, max, fieldName, isRequired);
+        });
+
+        // 3. Listener für Fokusverlust
+        field.focusedProperty().addListener((observable, oldVal, newVal) -> {
+            if (!newVal) { // Fokus verloren
+                validateDecimalFieldLive(field, min, max, fieldName, isRequired);
+            }
+        });
+    }
+
+    public void setupEmailField(TextField emailField, Label feedbackLabel) {
+        Pattern emailPattern = Pattern.compile("^[A-Za-z0-9_+&*-]+(?:\\.[A-Za-z0-9_+&*-]+)*@(?:[A-Za-z0-9-]+\\.)+[A-Za-z]{2,7}$");
+        emailField.textProperty().addListener((observable, oldValue, newValue) -> {
+            String email = newValue.trim();
+            // Feedback Label Logik (visuelles Feedback)
+            if (email.isEmpty()) {
+                feedbackLabel.setText(""); // Leeres Feld -> kein Feedback
+                removeErrorStyle(emailField); // Evtl. Fehlerstil entfernen
+            } else if (!emailPattern.matcher(email).matches()) {
+                feedbackLabel.setText("Ungültiges E-Mail-Format.");
+                feedbackLabel.setStyle("-fx-text-fill: red;");
+                // Optional: Feld markieren
+                // markInvalid(emailField);
+            } else {
+                feedbackLabel.setText("Format gültig.");
+                feedbackLabel.setStyle("-fx-text-fill: green;");
+                removeErrorStyle(emailField); // Fehlerstil entfernen, wenn gültig
+            }
+        });
+    }
+
+    // Live-Validierung für Decimal
+    private void validateDecimalFieldLive(TextField field, double min, double max, String fieldName, boolean isRequired) {
+        String text = field.getText().trim();
+        boolean isValid = true;
+        String validationMessage = null;
+
+        if (text.isEmpty()) {
+            if (isRequired) {
+                isValid = false;
+                validationMessage = fieldName + " darf nicht leer sein.";
+            }
+        } else {
+            try {
+                String parsableText = text.replace(',', '.');
+                // Prüfe auf den Fall, dass nur ein Punkt/Komma eingegeben wurde
+                if (parsableText.equals(".")) {
+                    // Eine einzelne Dezimaltrennung ist keine gültige Zahl für die Bereichsprüfung
+                    isValid = false;
+                    validationMessage = fieldName + ": Unvollständige Zahl.";
+                } else {
+                    // Versuche zu parsen
+                    double value = Double.parseDouble(parsableText); // Kann NumberFormatException werfen
+
+                    if (value < min || value > max) { // Bereich prüfen
+                        isValid = false;
+                        validationMessage = String.format(Locale.GERMAN, "%s muss zwischen %.1f und %.1f liegen.", fieldName, min, max);
+                    }
+                }
+            } catch (NumberFormatException e) { // Fange nur NumberFormatException
+                isValid = false;
+                validationMessage = fieldName + ": Ungültige Dezimalzahl.";
+            }
+        }
+
+        // Stil und Tooltip setzen
+        if (!isValid) {
+            markInvalid(field);
+            setTooltip(field, validationMessage);
+        } else {
+            removeErrorStyle(field);
         }
     }
 
 
-    /**
-     * Validiert das gesamte Formular bei der Einreichung.
-     * Führt alle konfigurierten Prüfungen durch.
-     *
-     * @param scrollPane Das ScrollPane zum Navigieren.
-     * @param businessLinkField Das Textfeld für den Business-Link (für die spezielle Prüfung).
-     * @param businessLinkToggle Die CheckBox für den Business-Link (für die spezielle Prüfung).
-     * @param emailField Das E-Mail-Feld (für die spezielle Prüfung). // Beispiel: Füge hier alle Felder hinzu, die spezielle Prüfungen benötigen
-     * @return true, wenn das Formular gültig ist, sonst false.
-     */
+    // --- Live-Validierungsmethode für Numeric ---
+
+
+    private void validateNumericFieldLive(TextField field, int min, int max, String fieldName, boolean isRequired) {
+        String text = field.getText().trim();
+        boolean isValid = true;
+        String validationMessage = null; // Für Tooltip
+
+        if (text.isEmpty()) {
+            if (isRequired) {
+                isValid = false;
+                validationMessage = fieldName + " darf nicht leer sein.";
+            }
+            // Wenn nicht required und leer -> gültig
+        } else {
+            try {
+                int value = Integer.parseInt(text); // Parsen
+                if (value < min || value > max) { // Bereich prüfen
+                    isValid = false;
+                    validationMessage = fieldName + " muss zwischen " + min + " und " + max + " liegen.";
+                }
+            } catch (NumberFormatException e) {
+                // Sollte durch Formatter verhindert werden, aber als Fallback
+                isValid = false;
+                validationMessage = fieldName + ": Ungültige Zahl.";
+            }
+        }
+
+        // Stil und Tooltip setzen
+        if (!isValid) {
+            markInvalid(field); // Setzt roten Rand
+            setTooltip(field, validationMessage); // Setzt Tooltip
+        } else {
+            removeErrorStyle(field); // Entfernt roten Rand und Tooltip
+        }
+    }
+
+
+    // --- Finale Validierung beim Speichern ---
+
     public boolean validateForm(ScrollPane scrollPane, TextField businessLinkField, CheckBox businessLinkToggle, TextField emailField) {
-        // 1. Fehlerlisten zurücksetzen
         errorMessages.clear();
         errorControls.clear();
         boolean isFormValid = true;
 
-        // 2. Alle Validierungen durchführen und Ergebnisse sammeln
-        isFormValid &= validateRequiredFieldsInternal(); // Prüft Pflichtfelder
-
-        // --- Hier weitere spezifische Validierungen hinzufügen ---
-        // Beispiel: E-Mail-Format bei Einreichung prüfen (zusätzlich zum Live-Feedback)
-        isFormValid &= validateEmailFormatInternal(emailField, "E-Mail");
-
-        // Beispiel: Business-Link prüfen
+        // Führe alle benötigten Validierungen durch
+        isFormValid &= validateRequiredFieldsInternal();
+        isFormValid &= validateEmailFormatInternal(emailField, "E-Mail"); // Finale Prüfung
         isFormValid &= validateOptionalBusinessLinkInternal(businessLinkField, businessLinkToggle, "Business-Profil-Link");
+        isFormValid &= validateNumericRangesInternal(); // Finale Bereichsprüfung
+        isFormValid &= validateDecimalRangesInternal();
 
-        // Beispiel: Numerische Bereiche prüfen (falls setupNumericField nur Filterung macht)
-        // isFormValid &= validateNumericRangeInternal(someNumericField, 0, 100, "Prozentwert");
+        // Füge hier ggf. noch finale Prüfungen für Decimal etc. hinzu
 
-        // 3. Ergebnis verarbeiten
+        // Ergebnis verarbeiten
         if (!isFormValid) {
-            // Zeige gesammelte Fehlermeldungen an
-            showErrorSummaryDialog();
-
-            // Scrolle zum ersten fehlerhaften Control
+            showErrorSummaryDialog(); // Zeigt alle gesammelten Fehler
             if (!errorControls.isEmpty()) {
                 Control firstInvalid = errorControls.get(0);
                 Platform.runLater(() -> {
-                    scrollToNode(firstInvalid, scrollPane); // Dein bestehender Scroll-Code
+                    scrollToNode(firstInvalid, scrollPane);
                     firstInvalid.requestFocus();
                 });
             }
-            return false; // Formular ungültig
+            return false;
         }
-
-        return true; // Formular gültig
+        return true;
     }
 
-    // --- Interne Validierungsmethoden (werden von validateForm aufgerufen) ---
+    // --- Interne Validierungs-Hilfsmethoden ---
 
-    /**
-     * Prüft alle als erforderlich markierten Felder.
-     * Fügt Fehler zu errorMessages und errorControls hinzu.
-     * @return true, wenn alle Pflichtfelder ausgefüllt sind, sonst false.
-     */
     private boolean validateRequiredFieldsInternal() {
         boolean allValid = true;
         for (TextInputControl field : requiredTextFields) {
-            removeErrorStyle(field); // Stil zurücksetzen vor Prüfung
+            // Stil nicht zurücksetzen, da Live-Validierung aktiv sein könnte
             if (field.getText().isBlank()) {
-                markInvalid(field); // Markieren und zur Fehlerliste hinzufügen
-                // Sinnvollen Namen für Fehlermeldung finden (z.B. aus PromptText)
-                String fieldName = getFieldName(field, "Eingabefeld");
-                errorMessages.add(fieldName + " darf nicht leer sein.");
+                markInvalid(field);
+                errorMessages.add(getFieldName(field, "Eingabefeld") + " darf nicht leer sein.");
                 allValid = false;
             }
         }
-
         for (ComboBox<?> comboBox : requiredComboBoxes) {
-            removeErrorStyle(comboBox); // Stil zurücksetzen vor Prüfung
+            // Stil nicht zurücksetzen
             if (comboBox.getValue() == null) {
                 markInvalid(comboBox);
-                String fieldName = getFieldName(comboBox, "Auswahl");
-                errorMessages.add(fieldName + " muss ausgewählt werden.");
+                errorMessages.add(getFieldName(comboBox, "Auswahl") + " muss ausgewählt werden.");
                 allValid = false;
             }
         }
         return allValid;
     }
 
-    /**
-     * Validiert das E-Mail-Format bei der Einreichung.
-     * @param emailField Das zu prüfende Feld.
-     * @param baseFieldName Name für die Fehlermeldung.
-     * @return true, wenn das Format gültig ist oder das Feld leer ist, sonst false.
-     */
     private boolean validateEmailFormatInternal(TextField emailField, String baseFieldName) {
-        removeErrorStyle(emailField); // Reset style
-        Pattern emailPattern = Pattern.compile("^[A-Za-z0-9_+&*-]+(?:\\.[A-Za-z0-9_+&*-]+)*@(?:[A-Za-z0-9-]+\\.)+[A-Za-z]{2,7}$"); // Etwas strengeres Pattern
+        // Stil nicht zurücksetzen
+        Pattern emailPattern = Pattern.compile("^[A-Za-z0-9_+&*-]+(?:\\.[A-Za-z0-9_+&*-]+)*@(?:[A-Za-z0-9-]+\\.)+[A-Za-z]{2,7}$");
         String email = emailField.getText().trim();
-
         if (!email.isEmpty() && !emailPattern.matcher(email).matches()) {
             markInvalid(emailField);
             errorMessages.add(baseFieldName + ": Ungültiges E-Mail-Format.");
@@ -145,11 +293,74 @@ public class FormValidator {
         return true;
     }
 
+    private boolean validateNumericRangesInternal() {
+        boolean allValid = true;
+        for (NumericRangeField nrf : numericRangeFields) {
+            // Stil nicht zurücksetzen
+            String text = nrf.field().getText().trim();
+            if (text.isEmpty()) {
+                if (nrf.required()) {
+                    markInvalid(nrf.field());
+                    errorMessages.add(nrf.fieldName() + " darf nicht leer sein.");
+                    allValid = false;
+                }
+            } else {
+                try {
+                    int value = Integer.parseInt(text);
+                    if (value < nrf.min() || value > nrf.max()) {
+                        markInvalid(nrf.field());
+                        errorMessages.add(nrf.fieldName() + " muss zwischen " + nrf.min() + " und " + nrf.max() + " liegen.");
+                        allValid = false;
+                    }
+                } catch (NumberFormatException e) {
+                    markInvalid(nrf.field());
+                    errorMessages.add(nrf.fieldName() + ": Ungültige Zahleneingabe.");
+                    allValid = false;
+                }
+            }
+        }
+        return allValid;
+    }
+
+    private boolean validateDecimalRangesInternal() {
+        boolean allValid = true;
+        for (DecimalRangeField drf : decimalRangeFields) {
+            String text = drf.field().getText().trim();
+            if (text.isEmpty()) {
+                if (drf.required()) {
+                    markInvalid(drf.field());
+                    errorMessages.add(drf.fieldName() + " darf nicht leer sein.");
+                    allValid = false;
+                }
+            } else {
+                try {
+                    String parsableText = text.replace(',', '.');
+                    // Prüfe explizit auf ungültige Endungen oder nur Punkt
+                    if (parsableText.equals(".") || parsableText.endsWith(".")) {
+                        // Werfe hier die Exception, die parseDouble auch werfen würde
+                        throw new NumberFormatException("For input string: \"" + text + "\"");
+                    }
+                    double value = Double.parseDouble(parsableText); // Parse
+                    if (value < drf.min() || value > drf.max()) { // Prüfe Bereich
+                        markInvalid(drf.field());
+                        errorMessages.add(String.format(Locale.GERMAN, "%s muss zwischen %.1f und %.1f liegen.", drf.fieldName(), drf.min(), drf.max()));
+                        allValid = false;
+                    }
+                } catch (NumberFormatException e) { // Fange nur NumberFormatException
+                    markInvalid(drf.field());
+                    errorMessages.add(drf.fieldName() + ": Ungültige Dezimalzahl.");
+                    allValid = false;
+                }
+            }
+        }
+        return allValid;
+    }
+
 
     /**
-     * Validiert ein optionales Textfeld für einen Business-Link (URL).
-     * Die Validierung erfolgt nur, wenn die zugehörige CheckBox aktiviert ist
-     * und das Feld Text enthält. Prüft auf gültiges URL-Format und optional Domains.
+     * Validiert ein optionales Textfeld für einen Business-Link (URL) bei der finalen Prüfung.
+     * Fügt Fehler zur Liste hinzu und markiert das Feld, wenn ungültig.
+     * Entfernt den Fehlerstil, wenn gültig oder nicht relevant.
      *
      * @param linkField Das Textfeld für den Link.
      * @param toggleCheckBox Die CheckBox, die die Eingabe aktiviert.
@@ -157,221 +368,141 @@ public class FormValidator {
      * @return true, wenn der Link gültig ist oder nicht validiert werden muss, sonst false.
      */
     public boolean validateOptionalBusinessLinkInternal(TextField linkField, CheckBox toggleCheckBox, String baseFieldName) {
-        removeErrorStyle(linkField); // Reset style first
+        // --- IMMER zuerst Stil entfernen ---
+        removeErrorStyle(linkField); // Stellt sicher, dass alte Fehler entfernt werden
+
         boolean isValid = true;
 
+        // Nur prüfen, wenn Checkbox aktiv und Feld sichtbar
         if (toggleCheckBox.isSelected() && linkField.isVisible()) {
             String link = linkField.getText().trim();
+
+            // Nur prüfen, wenn das Feld nicht leer ist
             if (!link.isEmpty()) {
-                try {
-                    // Strikte Prüfung mit Java URL (erfordert meist http/https)
-                    URL url = new URL(link);
-
-                    // Zusätzliche Domain-Prüfung (optional)
-//                    String host = url.getHost().toLowerCase();
-//                    if (!(host.contains("linkedin.com") || host.contains("xing.com"))) {
-//                        markInvalid(linkField);
-//                        errorMessages.add(baseFieldName + ": Nur LinkedIn/Xing-Links erwartet.");
-//                        isValid = false;
-//                    }
-                    // Wenn du KEINE Domain-Prüfung willst, kommentiere den if-Block oben aus.
-
-                } catch (MalformedURLException e) {
+                // Minimalprüfung: Muss Protokoll haben oder zumindest Domain-Struktur
+                // Diese Regex ist relativ tolerant
+                if (!link.matches("^(https?://)?([\\w\\-]+\\.)+[a-z]{2,}([/\\w .\\-?=&%]*)*/?$")) {
+                    // Wenn die Regex NICHT passt -> ungültig
                     markInvalid(linkField);
-                    errorMessages.add(baseFieldName + ": Ungültiges URL-Format (z.B. https:// fehlt?).");
+                    errorMessages.add(baseFieldName + ": Ungültiges URL-Format (z.B. 'https://domain.com').");
                     isValid = false;
+                    // Kein try-catch mehr nötig, da wir keine URL parsen, nur Regex nutzen
                 }
-            } else {
-                // Feld ist leer, obwohl Checkbox aktiv ist. Ist das ein Fehler?
-                // Wenn ja:
-                // markInvalid(linkField);
-                // errorMessages.add(baseFieldName + " muss angegeben werden, wenn die Option aktiv ist.");
-                // isValid = false;
+                // Wenn die Regex passt, bleibt isValid = true und kein Fehler wird gesetzt/markiert.
+            }
+            // Wenn das Feld leer ist, ist es gültig (da optional), isValid bleibt true.
+        }
+        // Wenn Checkbox nicht aktiv oder Feld nicht sichtbar, ist es gültig, isValid bleibt true.
+
+        return isValid; // Gibt das Ergebnis der Prüfung zurück
+    }
+
+    // --- Styling und UI Hilfsmethoden ---
+
+    private void markInvalid(Control control) {
+        if (control != null) {
+            control.setStyle("-fx-border-color: red; -fx-border-width: 1px;");
+            if (!errorControls.contains(control)) {
+                errorControls.add(control);
             }
         }
-        // Wenn Checkbox nicht aktiv oder Feld nicht sichtbar -> Gültig (da optional)
-        return isValid;
     }
 
-
-    // --- Hilfsmethoden für Styling und Fehleranzeige ---
-
-    /**
-     * Markiert ein Control als ungültig (roter Rand) und fügt es zur Fehlerliste hinzu.
-     */
-    private void markInvalid(Control control) {
-        control.setStyle("-fx-border-color: red; -fx-border-width: 1px;"); // Etwas dezenter
-        if (!errorControls.contains(control)) { // Nur einmal hinzufügen
-            errorControls.add(control);
+    public void removeErrorStyle(Control control) {
+        if (control != null) {
+            control.setStyle(null);
+            control.setTooltip(null); // Tooltip auch hier entfernen
         }
     }
 
-    /**
-     * Entfernt den Fehlerstil von einem Control.
-     */
-    public void removeErrorStyle(Control control) {
-        control.setStyle(null); // Standardstil wiederherstellen
+    // Diese Methode wird von den Listenern aufgerufen, wenn sich Text/Auswahl ändert
+    private void removeErrorStyleOnChange(Control control) {
+        if (control != null && control.getStyle() != null && control.getStyle().contains("-fx-border-color: red;")) {
+            // Stil nur entfernen, wenn Feld geändert wird, Tooltip bleibt ggf. bis zur nächsten Validierung
+            control.setStyle(null);
+            // Tooltip hier *nicht* unbedingt entfernen, damit die Meldung sichtbar bleibt, bis der Wert gültig ist
+            // control.setTooltip(null);
+        }
     }
 
-    /**
-     * Zeigt einen Dialog mit allen gesammelten Fehlermeldungen an.
-     */
+    private void setTooltip(Control control, String message) {
+        if (control == null) return;
+        if (message == null || message.isBlank()) {
+            control.setTooltip(null);
+        } else {
+            Tooltip tooltip = control.getTooltip();
+            if (tooltip == null) {
+                tooltip = new Tooltip(message); // Text direkt im Konstruktor setzen
+                control.setTooltip(tooltip);
+            } else {
+                tooltip.setText(message); // Bestehenden Tooltip aktualisieren
+            }
+        }
+    }
+
     private void showErrorSummaryDialog() {
         if (errorMessages.isEmpty()) return;
-
         Alert alert = new Alert(Alert.AlertType.ERROR);
         alert.setTitle("Validierungsfehler");
         alert.setHeaderText("Bitte korrigieren Sie die folgenden Eingaben:");
-
-        // Verhindert zu lange Nachrichten im Dialog
         String content = String.join("\n", errorMessages);
-        int maxLength = 800; // Maximale Zeichenlänge
+        int maxLength = 800;
         if (content.length() > maxLength) {
             content = content.substring(0, maxLength) + "\n...";
         }
-        alert.setContentText(content);
-        alert.getDialogPane().setMinHeight(Region.USE_PREF_SIZE); // Sorgt für passende Größe
+        TextArea textArea = new TextArea(content);
+        textArea.setEditable(false);
+        textArea.setWrapText(true);
+        textArea.setMaxWidth(Double.MAX_VALUE);
+        textArea.setMaxHeight(Double.MAX_VALUE);
+        alert.getDialogPane().setContent(textArea);
+        alert.getDialogPane().setMinHeight(Region.USE_PREF_SIZE);
+        alert.setResizable(true);
         alert.showAndWait();
     }
 
-    /**
-     * Versucht, einen sinnvollen Namen für ein Feld zu finden (z.B. PromptText).
-     */
     private String getFieldName(Control control, String defaultName) {
-        if (control instanceof Labeled labeled && labeled.getText() != null && !labeled.getText().isEmpty()) {
-            return labeled.getText(); // z.B. Text einer Checkbox oder eines Buttons
-        }
-        if (control instanceof TextInputControl tic && tic.getPromptText() != null && !tic.getPromptText().isEmpty()) {
-            return tic.getPromptText(); // PromptText von TextField, TextArea
-        }
-        if (control instanceof ComboBoxBase<?> cbb && cbb.getPromptText() != null && !cbb.getPromptText().isEmpty()) {
-            return cbb.getPromptText(); // PromptText von ComboBox
-        }
-        // Finde das Label, das mit diesem Control verbunden ist (komplexer, hier vereinfacht)
-        // Node label = control.lookup(".label"); // Einfacher Ansatz, oft nicht zuverlässig
-        // if(label instanceof Label) return ((Label) label).getText();
-
-        return defaultName; // Fallback
+        // Versuche PromptText zuerst, dann Text des Labels (falls es ein Labeled ist)
+        if (control instanceof TextInputControl tic && tic.getPromptText() != null && !tic.getPromptText().isEmpty()) return tic.getPromptText();
+        if (control instanceof ComboBoxBase<?> cbb && cbb.getPromptText() != null && !cbb.getPromptText().isEmpty()) return cbb.getPromptText();
+        if (control instanceof Labeled labeled && labeled.getText() != null && !labeled.getText().isEmpty()) return labeled.getText();
+        return defaultName;
     }
-
-
-    // --- Bestehende Methoden (scrollToNode, setupNumericField, etc.) ---
-    // Behalte deine Methoden scrollToNode, setupNumericField, setupDecimalField
-    // setupEmailField kann bleiben für Live-Feedback, aber die *finale* Prüfung
-    // erfolgt jetzt in validateEmailFormatInternal.
 
     private void scrollToNode(Node node, ScrollPane scrollPane) {
         if (scrollPane == null || node == null) return;
-
         Node content = scrollPane.getContent();
         if (content != null) {
-            // Versuch, die Position relativ zum Scrollpane-Inhalt zu bekommen
-            Bounds nodeBoundsInParent = node.localToParent(node.getBoundsInLocal());
-            double nodeYInContent = nodeBoundsInParent.getMinY();
+            // Diese Methode zum Scrollen ist oft genauer:
+            Platform.runLater(()-> { // Stelle sicher, dass es auf dem FX Thread läuft
+                double contentHeight = content.getBoundsInLocal().getHeight();
+                double nodeMinY = node.getBoundsInParent().getMinY();
+                double nodeMaxY = node.getBoundsInParent().getMaxY();
+                double viewportHeight = scrollPane.getViewportBounds().getHeight();
+                double vValue = scrollPane.getVvalue();
+                double y = nodeMinY; // Scrolle zur Oberkante
 
-            // Finde die Gesamt-Höhe des Inhalts
-            double contentHeight = content.getBoundsInLocal().getHeight();
-            // Finde die Höhe des sichtbaren Bereichs
-            double viewportHeight = scrollPane.getViewportBounds().getHeight();
+                // Berechne VValue für die Oberkante
+                double vValueMin = Math.max(0, (y / (contentHeight - viewportHeight)));
+                // Berechne VValue, damit auch Unterkante sichtbar ist (falls möglich)
+                double vValueMax = Math.max(0, ((y + node.getBoundsInLocal().getHeight() - viewportHeight) / (contentHeight - viewportHeight)));
 
-            // Berechne den VValue (Anteil, um wie viel gescrollt werden muss)
-            // Ziel: Oberkante des Nodes soll oben im Viewport sichtbar sein
-            double vvalue = nodeYInContent / Math.max(1, contentHeight - viewportHeight); // Division durch 0 vermeiden
 
-            // Begrenze den Wert zwischen 0 und 1
-            scrollPane.setVvalue(Math.min(1, Math.max(0, vvalue)));
+                // Prüfe, ob der Node bereits (teilweise) sichtbar ist
+                double currentVPMinY = (contentHeight - viewportHeight) * vValue;
+                double currentVPMaxY = currentVPMinY + viewportHeight;
+
+
+                if (nodeMinY < currentVPMinY) { // Node ist oberhalb des Viewports
+                    scrollPane.setVvalue(vValueMin);
+                } else if (nodeMaxY > currentVPMaxY) { // Node ist unterhalb des Viewports
+                    scrollPane.setVvalue(vValueMax);
+                }
+                // Wenn schon sichtbar, nicht scrollen oder nur leicht zentrieren (optional)
+
+                node.requestFocus(); // Fokus setzen
+            });
         }
     }
 
-    public void setupNumericField(TextField field, int min, int max, String fieldName) {
-        UnaryOperator<TextFormatter.Change> filter = change -> {
-            String newText = change.getControlNewText();
-            if (newText.isEmpty()) {
-                return change;
-            }
-
-            if (Pattern.matches("\\d*", newText)) {
-                // Nur filtern, keine Bereichsprüfung hier (das kann validateForm machen)
-                return change;
-                /* Optional: Bereichsprüfung direkt beim Tippen
-                try {
-                    int value = Integer.parseInt(newText);
-                    if (value >= min && value <= max) {
-                        return change;
-                    }
-                } catch (NumberFormatException e) { }
-                */
-            }
-            return null; // Ungültige Eingabe verhindern
-        };
-        field.setTextFormatter(new TextFormatter<>(filter));
-    }
-
-    public void setupDecimalField(TextField field, double min, double max, String fieldName) {
-        UnaryOperator<TextFormatter.Change> filter = change -> {
-            String currentText = change.getControlText();
-            String newText = change.getControlNewText();
-
-            if (newText.isEmpty()) {
-                return change;
-            }
-
-            // Erlaube nur Ziffern, einen Punkt oder ein Komma
-            if (!Pattern.matches("[\\d.,]*", newText)) {
-                return null;
-            }
-
-            // Ersetze Komma durch Punkt für die Prüfung
-            String parsableText = newText.replace(',', '.');
-
-            // Erlaube nur einen Dezimaltrenner
-            if (parsableText.indexOf('.') != parsableText.lastIndexOf('.')) {
-                return null;
-            }
-
-            // Versuche zu parsen, um ungültige Formate wie ".." oder "." am Anfang zu vermeiden
-            try {
-                if (parsableText.equals(".")) { // Sonderfall: Nur Punkt ist noch keine Zahl
-                    // Erlaube es, wenn der aktuelle Text leer ist
-                    return currentText.isEmpty() ? change : null;
-                } else if (!parsableText.isEmpty()){
-                    Double.parseDouble(parsableText); // Teste, ob es eine gültige Zahl ist
-                }
-                // Bereichsprüfung kann optional hier oder besser in validateForm erfolgen
-                return change;
-
-            } catch (NumberFormatException e) {
-                return null; // Ungültiges Zahlenformat
-            }
-        };
-        field.setTextFormatter(new TextFormatter<>(filter));
-    }
-
-
-    // setupEmailField kann für Live-Feedback bleiben
-    public void setupEmailField(TextField emailField, Label feedbackLabel) {
-        Pattern emailPattern = Pattern.compile("^[A-Za-z0-9_+&*-]+(?:\\.[A-Za-z0-9_+&*-]+)*@(?:[A-Za-z0-9-]+\\.)+[A-Za-z]{2,7}$"); // Das strengere Pattern verwenden
-
-        emailField.textProperty().addListener((observable, oldValue, newValue) -> {
-            String email = newValue.trim();
-            if (email.isEmpty()) {
-                feedbackLabel.setText(""); // Keine Meldung bei leerem Feld
-                removeErrorStyle(emailField); // Fehlerstil entfernen
-                return;
-            }
-
-            boolean isValid = emailPattern.matcher(email).matches();
-
-            if (!isValid) {
-                feedbackLabel.setText("Ungültiges E-Mail-Format.");
-                feedbackLabel.setStyle("-fx-text-fill: red;");
-                // Optional: roten Rahmen setzen für sofortiges Feedback
-                // markInvalid(emailField); // Vorsicht: Könnte verwirrend sein, wenn es optional ist
-            } else {
-                feedbackLabel.setText("Format gültig.");
-                feedbackLabel.setStyle("-fx-text-fill: green;");
-                removeErrorStyle(emailField); // Fehlerstil entfernen
-            }
-        });
-    }
 }

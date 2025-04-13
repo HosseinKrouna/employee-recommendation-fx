@@ -167,18 +167,18 @@
 
      <HBox spacing="10">
          <VBox spacing="5">
-             <Label text="Gehaltsvorstellung (€):" />
-             <TextField fx:id="salaryExpectationField" promptText="z. B. 65.000" />
+             <Label text="Gehaltsvorstellung im Jahr (€):" />
+             <TextField fx:id="salaryExpectationField" />
          </VBox>
 
          <VBox spacing="5">
              <Label text="Stundenanzahl (VZ / TZ):" />
-             <TextField fx:id="workHoursField" promptText="z. B. Vollzeit / 32h" />
+             <TextField fx:id="workHoursField" promptText="z.B. Vollzeit / 32h" />
          </VBox>
 
          <VBox spacing="5">
              <Label text="Reisebereitschaft (%)" />
-             <TextField fx:id="travelWillingnessField" promptText="z. B. 20" />
+             <TextField fx:id="travelWillingnessField" promptText="z.B. 20" />
          </VBox>
      </HBox>
  </VBox>
