@@ -12,6 +12,7 @@ module com.krouna.empfehlungsapp_javafx {
     requires com.fasterxml.jackson.datatype.jsr310;
     requires com.fasterxml.jackson.databind;
     requires java.desktop;
+    requires spring.expression;
 
     exports com.krouna.empfehlungsapp_javafx.dto;
 

@@ -184,9 +184,9 @@ public class EmployeeNewRecommendationController {
 
     private void initializeValidators() {
         // Richte Validatoren für numerische Felder und E-Mail ein
-        formValidator.setupDecimalField(experienceYearsField, 0.0, 99.9, "Berufserfahrung");
-        formValidator.setupNumericField(salaryExpectationField, 1, 500000, "Gehalt");
-        formValidator.setupNumericField(travelWillingnessField, 0, 100, "Reisebereitschaft");
+        formValidator.addDecimalRangeValidation(experienceYearsField, 0.0, 99.9, "Berufserfahrung",false);
+        formValidator.setupNumericFieldWithLiveRangeCheck(salaryExpectationField, 1, 500000, "Gehalt", false);
+        formValidator.setupNumericFieldWithLiveRangeCheck(travelWillingnessField, 0, 100, "Reisebereitschaft", false);
         formValidator.setupEmailField(emailField, emailFeedbackLabel); // Verwendet das Feedback-Label
         // Füge hier ggf. Validatoren für andere Felder hinzu (z.B. Telefonnummer)
     }
@@ -198,7 +198,7 @@ public class EmployeeNewRecommendationController {
             skillFieldManager.setupSkillCheckbox(checkbox, fields[0], fields[1]);
             if (fields[0] != null) {
                 // Stelle sicher, dass der Validator auch für diese Felder aufgerufen wird
-                formValidator.setupNumericField(fields[0], 0, 100, "Kenntnisgrad (%) für " + checkbox.getText());
+                formValidator.setupNumericFieldWithLiveRangeCheck(fields[0], 0, 100, "Kenntnisgrad (%) für " + checkbox.getText(), false);
             }
         });
     }
@@ -275,13 +275,23 @@ public class EmployeeNewRecommendationController {
     }
 
     private void initializeDatePickers() {
-        // Richte Datumsvalidierungen und Abhängigkeiten ein
-        dateValidator.setupDateValidation(contactDatePicker, "Erstkontakt-Datum", true);
-        dateValidator.setupDateValidation(convincedCandidateDatePicker, "Überzeugt-Datum", true);
-        dateValidator.setupDateValidation(noticePeriodDatePicker, "Kündigungsfrist", false);
-        dateValidator.setupDateValidation(startDatePicker, "Startdatum", false);
+        // --- Gültigkeitsprüfungen für einzelne Daten ---
+        // Erstkontakt darf NICHT in der Zukunft liegen
+        dateValidator.setupFutureDateValidation(contactDatePicker, "Erstkontakt-Datum", true);
+        // Überzeugungsdatum darf NICHT in der Zukunft liegen
+        dateValidator.setupFutureDateValidation(convincedCandidateDatePicker, "Überzeugt-Datum", true);
+        // Kündigungsfrist darf in der Zukunft liegen (false)
+        dateValidator.setupFutureDateValidation(noticePeriodDatePicker, "Kündigungsfrist", false);
+        // Startdatum darf in der Zukunft liegen (false)
+        dateValidator.setupFutureDateValidation(startDatePicker, "Startdatum", false);
+
+
+        // --- Abhängigkeitsprüfungen (Reihenfolge) ---
+        // Überzeugungsdatum muss NACH oder am GLEICHEN Tag wie Erstkontakt sein
         dateValidator.setupDateDependency(contactDatePicker, convincedCandidateDatePicker, "Kontakt-Datum", "Überzeugt-Datum");
+        // Startdatum muss NACH oder am GLEICHEN Tag wie Erstkontakt sein (optional, aber logisch)
         dateValidator.setupDateDependency(contactDatePicker, startDatePicker, "Kontakt-Datum", "Startdatum");
+        // Startdatum muss NACH oder am GLEICHEN Tag wie Kündigungsfrist sein
         dateValidator.setupDateDependency(noticePeriodDatePicker, startDatePicker, "Kündigungsfrist", "Startdatum");
     }
 
