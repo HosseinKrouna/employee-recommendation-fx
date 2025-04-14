@@ -23,6 +23,7 @@ import java.net.http.HttpResponse; // Standard HttpResponse importieren
 import java.nio.charset.StandardCharsets;
 import java.time.Duration; // Für Timeout
 import java.util.Collections; // Für leere Liste
+import java.util.HashMap;
 import java.util.List;
 // Optional wird nicht mehr benötigt, wenn authenticateUser entfernt wird
 // import java.util.Optional;
@@ -220,6 +221,55 @@ public class BackendService {
         }
         return builder.POST(HttpRequest.BodyPublishers.ofString(jsonPayload, StandardCharsets.UTF_8))
                 .build();
+    }
+
+
+    // In BackendService.java
+
+    /**
+     * Aktualisiert den Status einer Empfehlung im Backend.
+     * @param recommendationId Die ID der zu aktualisierenden Empfehlung.
+     * @param newStatus Der neue Status als String.
+     * @return true bei Erfolg, false bei Misserfolg.
+     * @throws IOException Bei Netzwerkfehlern.
+     * @throws InterruptedException Wenn der Thread unterbrochen wird.
+     */
+    public boolean updateRecommendationStatus(Long recommendationId, String newStatus) throws IOException, InterruptedException {
+        // Erstelle den Request Body (z.B. als JSON mit dem neuen Status)
+        // Einfache Variante: Nur den Status senden
+        // String jsonBody = String.format("{\"status\":\"%s\"}", newStatus);
+        // Besser: Ein kleines DTO verwenden
+        var statusUpdateDto = new HashMap<String, String>();
+        statusUpdateDto.put("status", newStatus);
+        String jsonBody;
+        try {
+            jsonBody = objectMapper.writeValueAsString(statusUpdateDto);
+        } catch (JsonProcessingException e) {
+            System.err.println("Fehler beim Erstellen des Status-Update JSONs: " + e.getMessage());
+            return false; // Oder Exception werfen
+        }
+
+
+        // Erstelle den PUT oder PATCH Request (PUT ist oft für komplettes Update, PATCH für Teilupdate)
+        // Annahme: Endpunkt ist PUT /api/recommendations/{id}/status
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(BASE_API_URL + "/recommendations/" + recommendationId + "/status")) // Beispiel-Endpunkt
+                .header("Authorization", "Bearer " + UserSession.getInstance().getToken())
+                .header("Content-Type", "application/json")
+                .PUT(HttpRequest.BodyPublishers.ofString(jsonBody)) // Oder .method("PATCH", ...)
+                .build();
+
+        // Sende den Request synchron (oder asynchron, wenn gewünscht)
+        HttpResponse<String> response = client.send(request, BodyHandlers.ofString());
+
+        // Prüfe den Statuscode
+        if (response.statusCode() >= 200 && response.statusCode() < 300) {
+            return true; // Erfolg
+        } else {
+            System.err.println("Fehler beim Status-Update für ID " + recommendationId + ": Status " + response.statusCode() + ", Body: " + response.body());
+            handleErrorResponse(response, "Fehler beim Status-Update für ID " + recommendationId); // Wirft IOException
+            return false; // Wird wegen Exception nicht erreicht
+        }
     }
 
     /**
