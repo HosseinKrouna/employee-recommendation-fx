@@ -88,7 +88,7 @@ public class HRDashboardController implements Initializable {
         statusColumn.setPrefWidth(140); // Oder ein anderer passender Wert
         // 1. Datenquelle bleibt der String "status"
         statusColumn.setCellValueFactory(new PropertyValueFactory<>("status"));
-
+//        statusColumn.getStyleClass().add("editable-status-cell");
         // 2. Benutzerdefinierte CellFactory mit der Update-Aktion setzen
         statusColumn.setCellFactory(col -> new StatusComboBoxTableCell(
                 // Lambda-Ausdruck für die BiConsumer<RecommendationDTO, String> updateAction

@@ -3,9 +3,11 @@ package com.krouna.empfehlungsapp_javafx.ui.cells;
 import com.krouna.empfehlungsapp_javafx.dto.RecommendationDTO;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
+import javafx.scene.Cursor;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.ContentDisplay;
 import javafx.scene.control.TableCell;
+import javafx.scene.control.Tooltip;
 import javafx.scene.input.KeyCode;
 
 import java.util.List;
@@ -18,9 +20,12 @@ public class StatusComboBoxTableCell extends TableCell<RecommendationDTO, String
     private static final List<String> STATUS_OPTIONS = List.of("Eingereicht", "Im Prozess", "Abgesagt", "Eingestellt");
     private final BiConsumer<RecommendationDTO, String> updateAction;
 
+
     public StatusComboBoxTableCell(BiConsumer<RecommendationDTO, String> updateAction) {
         this.updateAction = updateAction;
         // ComboBox wird erst bei Bedarf erstellt
+        setCursor(Cursor.HAND);
+        Tooltip.install(this, new Tooltip("Status ändern (Doppelklick)"));
     }
 
     @Override
@@ -57,6 +62,13 @@ public class StatusComboBoxTableCell extends TableCell<RecommendationDTO, String
     @Override
     public void updateItem(String item, boolean empty) {
         super.updateItem(item, empty);
+
+        // Stelle sicher, dass die Klasse auch nach Updates noch da ist
+        // (normalerweise nicht nötig, wenn im Konstruktor gesetzt)
+        // if (!getStyleClass().contains(EDITABLE_STYLE_CLASS)) {
+        //     getStyleClass().add(EDITABLE_STYLE_CLASS);
+        // }
+
 
         if (empty || item == null) {
             setText(null);
