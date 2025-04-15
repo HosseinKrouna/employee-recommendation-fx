@@ -28,6 +28,7 @@
      <TableColumn fx:id="cvFileColumn" text="CV" />
      <TableColumn fx:id="businessLinkColumn" text="Business-Link" />
      <TableColumn fx:id="pdfFileColumn" text="PDF" />
+     <TableColumn fx:id="actionColumn" text="Aktion" prefWidth="120"/>
    </columns>
  </TableView>
 

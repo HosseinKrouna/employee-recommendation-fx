@@ -12,43 +12,54 @@ import javafx.scene.input.KeyCode;
 
 import java.util.List;
 import java.util.function.BiConsumer;
+import java.util.stream.Collectors;
 
 public class StatusComboBoxTableCell extends TableCell<RecommendationDTO, String> {
 
     private ComboBox<String> comboBox;
     // Optionen als statische Konstante, falls sie sich nie ändern
-    private static final List<String> STATUS_OPTIONS = List.of("Eingereicht", "Im Prozess", "Abgesagt", "Eingestellt");
+    private static final List<String> STATUS_OPTIONS = List.of("Eingereicht", "Im Prozess", "Abgesagt", "Eingestellt", "Zurückgezogen");
     private final BiConsumer<RecommendationDTO, String> updateAction;
+    private static final String FINAL_STATUS_ZURUECKGEZOGEN = "Zurückgezogen";
 
 
     public StatusComboBoxTableCell(BiConsumer<RecommendationDTO, String> updateAction) {
         this.updateAction = updateAction;
-        // ComboBox wird erst bei Bedarf erstellt
-        setCursor(Cursor.HAND);
-        Tooltip.install(this, new Tooltip("Status ändern (Doppelklick)"));
+//        // ComboBox wird erst bei Bedarf erstellt
+//        if (FINAL_STATUS_ZURUECKGEZOGEN) {
+//            setCursor(Cursor.HAND);
+//            Tooltip.install(this, new Tooltip("Status ändern (Doppelklick)"));
+//        }
     }
 
+    // --- Wichtig: Auch startEdit anpassen! ---
     @Override
     public void startEdit() {
-        if (isEmpty() || !isEditable() || !getTableView().isEditable() || !getTableColumn().isEditable()) {
-            return; // Nur editieren, wenn möglich und nicht leer
+        // Zusätzliche Prüfung: Nicht editieren, wenn Status "Zurückgezogen" ist
+        // oder wenn Zelle/Tabelle/Spalte nicht bearbeitbar ist
+        if (FINAL_STATUS_ZURUECKGEZOGEN.equals(getItem()) ||
+                isEmpty() ||
+                !isEditable() ||
+                !getTableView().isEditable() ||
+                !getTableColumn().isEditable()) {
+            // Verhindere den Start des Editierens für "Zurückgezogen"
+            // oder wenn die Zelle generell nicht editierbar ist.
+            System.out.println("Bearbeiten verhindert für Item: " + getItem() + " (isEditable: " + isEditable() + ")");
+            return; // Breche startEdit ab
         }
+
+        // Fahre nur fort, wenn Bearbeitung erlaubt ist
         super.startEdit();
 
-        // ComboBox erstellen nur, wenn sie noch nicht existiert
         if (comboBox == null) {
-            createComboBox();
+            createComboBox(); // Erstelle ComboBox bei Bedarf
         }
 
-        // aktuellen Wert in die ComboBox setzen
-        comboBox.getSelectionModel().select(getItem());
-
-        //  Zur grafischen Darstellung (ComboBox) wechseln
+        comboBox.getSelectionModel().select(getItem()); // Setze aktuellen Wert
         setText(null);
         setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
         setGraphic(comboBox);
-        // Fokus setzen, damit KeyEvents funktionieren
-        Platform.runLater(() -> comboBox.requestFocus()); // runLater für besseres Timing
+        Platform.runLater(() -> comboBox.requestFocus()); // Fokus setzen
     }
 
     @Override
@@ -61,252 +72,156 @@ public class StatusComboBoxTableCell extends TableCell<RecommendationDTO, String
 
     @Override
     public void updateItem(String item, boolean empty) {
-        super.updateItem(item, empty);
+        super.updateItem(item, empty); // Wichtig: Immer super aufrufen!
 
-        // Stelle sicher, dass die Klasse auch nach Updates noch da ist
-        // (normalerweise nicht nötig, wenn im Konstruktor gesetzt)
-        // if (!getStyleClass().contains(EDITABLE_STYLE_CLASS)) {
-        //     getStyleClass().add(EDITABLE_STYLE_CLASS);
-        // }
-
+        // Tooltip-Instanz zwischenspeichern, um sie bei Bedarf zu entfernen
+        Tooltip currentTooltip = getTooltip();
 
         if (empty || item == null) {
+            // Zelle ist leer: Alles zurücksetzen
             setText(null);
             setGraphic(null);
+            setCursor(Cursor.DEFAULT);
+            // Tooltip entfernen, falls vorhanden
+            if (currentTooltip != null) {
+                Tooltip.uninstall(this, currentTooltip);
+            }
         } else {
-            // Im Anzeige-Modus oder wenn Edit abgebrochen wurde
-            if (!isEditing()) {
-                setText(item);
-                setContentDisplay(ContentDisplay.TEXT_ONLY);
-            } else {
-                // Im Editier-Modus (wird von startEdit/cancelEdit gesteuert)
-                // Wert in ComboBox sicherheitshalber neu setzen
+            // Zelle hat Inhalt (einen Status-String 'item')
+
+            // 1. Prüfen, ob der Status prinzipiell bearbeitbar ist
+            boolean isEditableStatus = !FINAL_STATUS_ZURUECKGEZOGEN.equals(item);
+
+            // 2. Prüfen, ob die Zelle/Spalte/Tabelle überhaupt bearbeitbar ist
+            boolean isCellConfiguredEditable = isEditable() && getTableView().isEditable() && getTableColumn().isEditable();
+
+            // 3. Entscheiden, wie die Zelle angezeigt wird
+
+            if (isEditing() && isEditableStatus && isCellConfiguredEditable) {
+                // ----- Im Bearbeitungsmodus (und Status erlaubt Bearbeitung) -----
+                // ComboBox wird in startEdit() gesetzt, hier nur sicherstellen,
+                // dass sie angezeigt wird und den korrekten Wert hat.
                 if (comboBox != null) {
                     comboBox.getSelectionModel().select(item);
                 }
                 setText(null);
+                setGraphic(comboBox); // Zeige die ComboBox
                 setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
-                setGraphic(comboBox);
+                setCursor(Cursor.DEFAULT); // Standard-Cursor während der Bearbeitung
+                // Tooltip während der Bearbeitung entfernen
+                if (currentTooltip != null) {
+                    Tooltip.uninstall(this, currentTooltip);
+                }
+
+            } else {
+                // ----- Im Anzeigemodus (oder Status erlaubt keine Bearbeitung) -----
+                setText(item); // Zeige den Status-Text
+                setGraphic(null);
+                setContentDisplay(ContentDisplay.TEXT_ONLY);
+
+                // Setze Cursor und Tooltip NUR, wenn der Status UND die Zelle bearbeitbar sind
+                if (isEditableStatus && isCellConfiguredEditable) {
+                    setCursor(Cursor.HAND); // Hand-Cursor als Hinweis
+                    // Installiere den Tooltip nur, wenn er noch nicht existiert
+                    // um mehrfache Installationen zu vermeiden
+                    if (currentTooltip == null) {
+                        Tooltip tt = new Tooltip("Status ändern (Doppelklick oder Enter)");
+                        // Optional: Verzögerung hinzufügen
+                        // tt.setShowDelay(Duration.millis(200));
+                        Tooltip.install(this, tt);
+                    }
+                } else {
+                    // Status ist nicht bearbeitbar ("Zurückgezogen") oder Zelle ist nicht editierbar
+                    setCursor(Cursor.DEFAULT); // Standard-Cursor
+                    // Entferne den Tooltip, falls er existiert
+                    if (currentTooltip != null) {
+                        Tooltip.uninstall(this, currentTooltip);
+                    }
+                }
             }
         }
     }
 
 
     private void createComboBox() {
-        comboBox = new ComboBox<>(FXCollections.observableArrayList(STATUS_OPTIONS));
-        comboBox.setPrefWidth(150); // Bevorzugte Breite
+        // Filter die Optionen: "Zurückgezogen" soll nicht auswählbar sein
+        List<String> selectableOptions = STATUS_OPTIONS.stream()
+                .filter(option -> !FINAL_STATUS_ZURUECKGEZOGEN.equals(option))
+                .collect(Collectors.toList());
+
+        comboBox = new ComboBox<>(FXCollections.observableArrayList(selectableOptions));
+        // comboBox = new ComboBox<>(FXCollections.observableArrayList(STATUS_OPTIONS)); // Alte Version
+        comboBox.setPrefWidth(150);
         comboBox.setMaxWidth(Double.MAX_VALUE);
 
-        // --- Listener für Wertänderung ---
-        // Dieser Listener ruft NUR die updateAction auf. Commit erfolgt separat.
+        // Listener für Wertänderung - unverändert
         comboBox.getSelectionModel().selectedItemProperty().addListener((obs, oldStatus, newStatus) -> {
-            // Nur wenn Edit aktiv ist, Wert neu und ungleich dem alten ist
-            if (isEditing() && newStatus != null && !newStatus.equals(oldStatus)) { // Vergleiche mit oldStatus!
-                RecommendationDTO currentDto = getTableView().getItems().get(getIndex());
-                if (updateAction != null) {
-                    // Backend-Logik aufrufen
-                    updateAction.accept(currentDto, newStatus);
-                    // WICHTIG: NICHT commitEdit hier aufrufen! Das macht der User durch Enter/Escape etc.
+            if (isEditing() && newStatus != null && !newStatus.equals(oldStatus)) {
+                // Prüfen, ob die Aktion aufgerufen werden soll (sicherheitshalber)
+                if (!FINAL_STATUS_ZURUECKGEZOGEN.equals(newStatus)) {
+                    RecommendationDTO currentDto = getTableView().getItems().get(getIndex());
+                    if (updateAction != null) {
+                        // Rufe die Update-Aktion auf, die im HRController definiert ist
+                        updateAction.accept(currentDto, newStatus);
+                    } else {
+                        // Sollte nicht passieren, wenn im Controller korrekt initialisiert
+                        System.err.println("UpdateAction ist null in StatusComboBoxTableCell!");
+                        cancelEdit();
+                    }
                 } else {
-                    cancelEdit(); // Breche ab, wenn keine Aktion definiert
+                    // Sollte durch gefilterte Liste nicht passieren, aber zur Sicherheit
+                    System.out.println("Versuch, 'Zurückgezogen' auszuwählen, ignoriert.");
+                    // Hier nicht cancelEdit aufrufen, da der User vielleicht was anderes wählen will
                 }
             }
         });
 
-        // --- Event Handling für Commit/Cancel ---
+
+        // Event Handling für Commit/Cancel - unverändert
         comboBox.setOnKeyPressed(event -> {
             if (event.getCode() == KeyCode.ENTER) {
-                // Bei Enter: Commit mit dem aktuell ausgewählten Wert
-                System.out.println("DEBUG: Enter gedrückt, commiting: " + comboBox.getValue());
-                commitEdit(comboBox.getValue());
-                event.consume(); // Verhindere weitere Verarbeitung des Events
+                // Nur committen, wenn der Wert gültig ist (nicht "Zurückgezogen")
+                String selectedValue = comboBox.getValue();
+                if (selectedValue != null && !FINAL_STATUS_ZURUECKGEZOGEN.equals(selectedValue)) {
+                    commitEdit(selectedValue);
+                } else {
+                    // Wenn "Zurückgezogen" irgendwie ausgewählt wurde oder nichts ausgewählt ist, abbrechen
+                    cancelEdit();
+                }
+                event.consume();
             } else if (event.getCode() == KeyCode.ESCAPE) {
-                // Bei Escape: Edit abbrechen
-                System.out.println("DEBUG: Escape gedrückt, canceling edit");
                 cancelEdit();
                 event.consume();
             }
-            // Andere Tasten (Pfeiltasten etc.) normal behandeln lassen
         });
 
-        // Fokusverlust führt zum Commit (Standardverhalten, kann man lassen oder ändern)
-        // Alternative: Fokusverlust führt zum Cancel, wenn Wert nicht geändert wurde
         comboBox.focusedProperty().addListener((obs, wasFocused, isNowFocused) -> {
-            if (!isNowFocused && isEditing()) { // Wenn Fokus verloren geht UND User im Edit-Modus ist
-                System.out.println("DEBUG: Fokus verloren, commiting: " + comboBox.getValue());
-                // Commit mit dem Wert, der gerade in der ComboBox steht
-                commitEdit(comboBox.getValue());
+            if (!isNowFocused && isEditing()) {
+                String selectedValue = comboBox.getValue();
+                if (selectedValue != null && !FINAL_STATUS_ZURUECKGEZOGEN.equals(selectedValue)) {
+                    commitEdit(selectedValue);
+                } else {
+                    cancelEdit();
+                }
             }
         });
+
     }
 
     // --- Commit Edit überschreiben  ---
     @Override
     public void commitEdit(String newValue) {
-        System.out.println("DEBUG: commitEdit in Cell aufgerufen mit: " + newValue);
-        // Nur committen, wenn User im Edit-Modus ist
-        if (!isEditing()) {
-            System.out.println("DEBUG: commitEdit ignoriert, nicht im Edit-Modus.");
+        // Zusätzliche Prüfung: Commit nicht zulassen, wenn der neue Wert "Zurückgezogen" ist
+        if (FINAL_STATUS_ZURUECKGEZOGEN.equals(newValue)) {
+            System.out.println("Commit für Status 'Zurückgezogen' verhindert.");
+            cancelEdit(); // Breche stattdessen ab
             return;
         }
-        // Wichtig:  super.commitEdit aufrufen, damit der onEditCommit der Spalte gefeuert wird!
-        // Der übergebene newValue ist der Wert, der im TableView-Model landen soll.
-        super.commitEdit(newValue);
 
-        // Explizit zurück zur Textanzeige wechseln
+        if (!isEditing()) {
+            return;
+        }
+        super.commitEdit(newValue);
         setContentDisplay(ContentDisplay.TEXT_ONLY);
-        // Die Aktualisierung des eigentlichen DTO-Objekts erfolgt im onEditCommit des Controllers
-        // basierend auf dem Wert, der hier übergeben wird.
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-//package com.krouna.empfehlungsapp_javafx.ui.cells; // Beispielpaket
-//
-//import com.krouna.empfehlungsapp_javafx.dto.RecommendationDTO;
-//import javafx.application.Platform;
-//import javafx.collections.FXCollections;
-//import javafx.scene.control.ComboBox;
-//import javafx.scene.control.ListCell;
-//import javafx.scene.control.ListView;
-//import javafx.scene.control.TableCell;
-//import javafx.util.Callback;
-//
-//import java.util.List;
-//import java.util.function.BiConsumer; // Für die Update-Aktion
-//
-//public class StatusComboBoxTableCell extends TableCell<RecommendationDTO, String> {
-//
-//    private ComboBox<String> comboBox;
-//    private final List<String> statusOptions = List.of("Eingereicht", "Im Prozess", "Abgesagt", "Eingestellt");
-//    // Aktion, die aufgerufen wird, wenn ein neuer Status gewählt wird: nimmt (RecommendationDTO, neuerStatus)
-//    private final BiConsumer<RecommendationDTO, String> updateAction;
-//
-//    public StatusComboBoxTableCell(BiConsumer<RecommendationDTO, String> updateAction) {
-//        this.updateAction = updateAction;
-//    }
-//
-//    @Override
-//    public void startEdit() {
-//        if (!isEmpty()) {
-//            super.startEdit();
-//            createComboBox(); // ComboBox Objekt wird erstellt
-//            setText(null);
-//
-//            // ---> VERSUCH MIT runLater <---
-//            // Setze die Grafik nicht sofort, sondern im nächsten UI-Puls
-//            final ComboBox<String> finalComboBox = comboBox; // Brauchen finale Variable für Lambda
-//            Platform.runLater(() -> {
-//                if (isEditing()) { // Prüfe nochmal, ob wir noch im Edit-Modus sind
-//                    System.out.println("DEBUG: Versuche ComboBox via runLater zu setzen...");
-//                    setGraphic(finalComboBox); // Setze die erstellte ComboBox
-//                }
-//            });
-//            // ---> ENDE VERSUCH MIT runLater <---
-//
-//            // Setze den aktuellen Wert (kann wahrscheinlich hier bleiben)
-//            if (comboBox != null) { // Sicherheitscheck
-//                comboBox.getSelectionModel().select(getItem());
-//            }
-//            // comboBox.show(); // Auskommentiert lassen
-//        }
-//    }
-//    @Override
-//    public void cancelEdit() {
-//        super.cancelEdit();
-//        // Setze den Text zurück und entferne die ComboBox
-//        setText(getItem());
-//        setGraphic(null);
-//    }
-//
-//    @Override
-//    public void updateItem(String item, boolean empty) {
-//        super.updateItem(item, empty);
-//
-//        if (empty || item == null) {
-//            setText(null);
-//            setGraphic(null);
-//        } else {
-//            if (isEditing()) {
-//                // Im Editier-Modus: ComboBox anzeigen (wird in startEdit erledigt)
-//                if (comboBox != null) {
-//                    comboBox.getSelectionModel().select(item);
-//                }
-//                setText(null);
-//                setGraphic(comboBox);
-//            } else {
-//                // Im Anzeige-Modus: Nur Text anzeigen
-//                setText(item);
-//                setGraphic(null);
-//                // Optional: Style basierend auf Status hinzufügen
-//                // getStyleClass().removeAll("status-eingereicht", "status-prozess", ...); // Alte entfernen
-//                // switch(item) {
-//                //    case "Eingereicht": getStyleClass().add("status-eingereicht"); break;
-//                //    case "Im Prozess": getStyleClass().add("status-prozess"); break;
-//                //    ...
-//                // }
-//            }
-//        }
-//    }
-//
-//    private void createComboBox() {
-//        comboBox = new ComboBox<>(FXCollections.observableArrayList(statusOptions));
-//        // ---> Logging hinzufügen <---
-//        System.out.println("DEBUG createComboBox: this.getWidth() = " + this.getWidth());
-//        System.out.println("DEBUG createComboBox: this.getGraphicTextGap() = " + this.getGraphicTextGap());
-//        // ---> Ende Logging <---
-//        comboBox.setMinWidth(this.getWidth() - this.getGraphicTextGap() * 2);
-//        comboBox.getSelectionModel().selectedItemProperty().addListener((obs, oldStatus, newStatus) -> {
-//            if (newStatus != null && !newStatus.equals(getItem())) {
-//                // Rufe die Update-Aktion auf, wenn sich der Wert ändert
-//                // Hole das DTO der aktuellen Zeile
-//                RecommendationDTO currentDto = getTableView().getItems().get(getIndex());
-//                if (updateAction != null) {
-//                    // Führe die Aktion aus (z.B. Backend-Call)
-//                    updateAction.accept(currentDto, newStatus);
-//                    // Wichtig: Commit den Edit, damit die Zelle den neuen Wert anzeigt
-//                    // commitEdit(newStatus); // <-- HIER AUSKOMMENTIEREN ZUM TESTEN
-//                } else {
-//                    // Keine Aktion definiert, breche Edit ab
-//                    cancelEdit();
-//                }
-//            } else {
-//                // Wert nicht geändert oder null -> Edit abbrechen
-//                // commitEdit(newStatus); // Oder cancel? Wenn Wert gleich bleibt, commit ok.
-//                cancelEdit();
-//            }
-//        });
-//
-//        // Verhindere, dass der Edit-Modus durch Klick außerhalb beendet wird, bevor Auswahl getroffen wurde (optional)
-//        /*
-//         comboBox.focusedProperty().addListener((obs, wasFocused, isNowFocused) -> {
-//            if (!isNowFocused) {
-//                // Nur committen, wenn ein gültiger Wert ausgewählt wurde
-//                // commitEdit(comboBox.getSelectionModel().getSelectedItem());
-//                 // Sicherer ist oft cancelEdit() bei Fokusverlust ohne Änderung
-//                 cancelEdit();
-//            }
-//        });
-//        */
-//
-//    }
-//}
