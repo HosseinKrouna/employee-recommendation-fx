@@ -109,6 +109,15 @@ Follow these steps to set up an HR user in Postman:
 - **Employees** can register themselves through the frontend. Once registered, they can log in to submit recommendations.
 - **HR Personnel** (Admins) will have their credentials set via Postman and can log in to manage recommendations, view generated PDFs, and track candidate statuses.
 
+### Documentation and Database Dump
+
+The **documentation** and the **database dump** for this project can be found in the **backend repository**.
+
+- **Documentation**: Contains detailed instructions on setting up and using the backend, including API endpoints, configuration, and setup procedures.
+- **Database Dump**: A dump of the MariaDB database (`emp_recommendations_dump.sql`) is available for quick setup and can be restored using Postman or directly in your MariaDB instance.
+
+You can access the backend repository here: [Backend Repository](https://github.com/HosseinKrouna/employee-recruits-employees)
+
 
 ## Documentation
 
