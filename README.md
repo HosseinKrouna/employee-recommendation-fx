@@ -83,7 +83,7 @@ Follow these steps to set up an HR user in Postman:
 1. **Open Postman** and create a new **POST request**.
 2. **URL**: 
    ```
-   http://localhost:8080/api/admin/setup
+   http://localhost:8080/api/users/register-hr
    ```
 3. **Headers**:
    - Set the `Content-Type` to `application/json`.
