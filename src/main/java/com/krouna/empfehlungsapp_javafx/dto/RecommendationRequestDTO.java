@@ -5,7 +5,7 @@ import java.util.List;
 
 public class RecommendationRequestDTO {
 
-    // --- Pflichtfelder ---
+
     private Long userId;
     private String candidateFirstname;
     private String candidateLastname;
@@ -13,21 +13,21 @@ public class RecommendationRequestDTO {
     private String documentCvPath;
     private String documentPdfPath;
 
-    // --- Kontakt & Kennenlernen ---
+
     private String email;
     private String phone;
     private String knownFrom;
     private LocalDate contactDate;
     private LocalDate convincedCandidateDate;
 
-    // --- Aktuelle oder letzte Position ---
+
     private String employmentStatus;
     private String currentPosition;
     private String currentCareerLevel;
     private String lastPosition;
     private String lastCareerLevel;
 
-    // --- Informiert über ---
+
     private boolean informedPosition;
     private boolean informedTasks;
     private boolean informedRequirements;
@@ -37,7 +37,7 @@ public class RecommendationRequestDTO {
     private boolean informedCoach;
     private boolean informedRoles;
 
-    // --- Eckdaten ---
+
     private Double experienceYears;
     private LocalDate noticePeriod;
     private LocalDate startDate;
@@ -45,7 +45,7 @@ public class RecommendationRequestDTO {
     private String workHours;
     private Integer travelWillingness;
 
-    // --- Skills (technologisch) ---
+
     private List<SkillEntry> backendSkills;
     private List<SkillEntry> frontendSkills;
     private List<SkillEntry> databaseSkills;
@@ -53,7 +53,7 @@ public class RecommendationRequestDTO {
     private List<SkillEntry> cicdSkills;
     private List<SkillEntry> customSkills;
 
-    // --- Weitere Angaben ---
+
     private String cvChoice;
     private String businessLink;
     private String personalityType;
@@ -62,7 +62,6 @@ public class RecommendationRequestDTO {
     private String miscellaneous;
 
 
-    // --- SkillEntry Hilfsklasse ---
     public static class SkillEntry {
         private String name;
         private int percentage;
@@ -93,7 +92,7 @@ public class RecommendationRequestDTO {
     }
 
 
-    // Getter & Setter
+
 
     public Long getUserId() { return userId; }
     public void setUserId(Long userId) { this.userId = userId; }

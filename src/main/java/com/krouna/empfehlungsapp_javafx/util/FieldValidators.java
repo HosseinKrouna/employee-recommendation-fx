@@ -3,19 +3,10 @@ package com.krouna.empfehlungsapp_javafx.util;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TextFormatter;
 
-/**
- * Utility class for validating text fields with numeric constraints
- */
+
 public class FieldValidators {
 
-    /**
-     * Configures a text field to only accept valid integer input
-     *
-     * @param field The field to configure
-     * @param min Minimum allowed value
-     * @param max Maximum allowed value
-     * @param label Label for error messages
-     */
+
     public void setupNumericField(TextField field, int min, int max, String label) {
         TextFormatter<String> formatter = new TextFormatter<>(change -> {
             String newText = change.getControlNewText();
@@ -35,14 +26,7 @@ public class FieldValidators {
         field.setTextFormatter(formatter);
     }
 
-    /**
-     * Configures a text field to only accept valid decimal input
-     *
-     * @param field The field to configure
-     * @param min Minimum allowed value
-     * @param max Maximum allowed value
-     * @param label Label for error messages
-     */
+
     public void setupDecimalField(TextField field, double min, double max, String label) {
         TextFormatter<String> formatter = new TextFormatter<>(change -> {
             String newText = change.getControlNewText();
@@ -63,17 +47,12 @@ public class FieldValidators {
     }
 
 
-    /**
-     * Konfiguriert ein Textfeld zur Validierung von E-Mail-Adressen mit Echtzeit-Feedback
-     *
-     * @param field Das zu konfigurierende Textfeld
-     * @param feedbackLabel Ein Label, das den Validierungsstatus anzeigt
-     */
+
     public void setupEmailField(TextField field, javafx.scene.control.Label feedbackLabel) {
-        // Initial verstecken oder neutral setzen
+
         feedbackLabel.setText("");
 
-        // TextProperty Listener für Echtzeit-Feedback
+
         field.textProperty().addListener((observable, oldValue, newValue) -> {
             if (newValue.isEmpty()) {
                 feedbackLabel.setText("");
@@ -82,7 +61,7 @@ public class FieldValidators {
                 return;
             }
 
-            // E-Mail-Validierung mit regulärem Ausdruck
+
             String emailRegex = "^[a-zA-Z0-9_+&*-]+(?:\\.[a-zA-Z0-9_+&*-]+)*@(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,7}$";
             boolean isValid = newValue.matches(emailRegex);
 
@@ -97,9 +76,9 @@ public class FieldValidators {
             }
         });
 
-        // Zusätzlich kann noch der TextFormatter verwendet werden
+
         TextFormatter<String> formatter = new TextFormatter<>(change -> {
-            return change; // Erlaubt alle Eingaben, Feedback erfolgt über den Listener
+            return change;
         });
 
         field.setTextFormatter(formatter);

@@ -11,7 +11,7 @@ public class RecommendationDTO {
     private String status;
     private String submittedAt;
     private Long userId;
-    private String recommendedByUsername; // Nur zur Anzeige
+    private String recommendedByUsername;
 
     public String getBusinessLink() {
         return businessLink;

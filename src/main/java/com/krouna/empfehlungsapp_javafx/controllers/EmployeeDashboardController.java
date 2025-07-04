@@ -74,44 +74,40 @@ public class EmployeeDashboardController implements Initializable {
         setupColumn(positionColumn, "position");
         setupColumn(statusColumn, "status");
         setupColumn(submittedAtColumn, "submittedAt");
-//        setupColumn(cvFileColumn, "documentCvPath");
-//        setupColumn(businessLinkColumn, "businessLink");
-//        setupColumn(pdfFileColumn, "documentPdfPath");
 
         // --- CellFactory für PDF Spalte
         pdfFileColumn.setCellValueFactory(new PropertyValueFactory<>("documentPdfPath"));
         pdfFileColumn.setCellFactory(col -> new DownloadButtonTableCell(fileDownloadService,
                 recommendation -> fileDownloadService.downloadGeneratedFile(recommendation.getDocumentPdfPath())));
 
-        // --- CellFactory für CV Spalte
-        cvFileColumn.setCellValueFactory(new PropertyValueFactory<>("documentCvPath")); // Datenquelle bleibt
+
+        cvFileColumn.setCellValueFactory(new PropertyValueFactory<>("documentCvPath"));
         cvFileColumn.setCellFactory(col -> new DownloadButtonTableCell(fileDownloadService,
                 recommendation -> fileDownloadService.downloadCvFile(recommendation.getDocumentCvPath())));
 
-        // --- NEU: CellFactory für Business-Link Spalte ---
-        businessLinkColumn.setCellValueFactory(new PropertyValueFactory<>("businessLink")); // Datenquelle bleibt String
+
+        businessLinkColumn.setCellValueFactory(new PropertyValueFactory<>("businessLink"));
         businessLinkColumn.setCellFactory(col -> new TableCell<RecommendationDTO, String>() {
             private final Hyperlink link = new Hyperlink();
 
-            { // Initialisierungsblock für die Zelle
+            {
                 link.setOnAction(event -> {
-                    String url = getItem(); // Holt den String (URL) aus der Zelle
+                    String url = getItem();
                     if (url != null && !url.trim().isEmpty()) {
                         try {
-                            // Stelle sicher, dass die URL ein Protokoll hat (http/https)
+
                             if (!url.toLowerCase().startsWith("http://") && !url.toLowerCase().startsWith("https://")) {
-                                url = "https://" + url; // Füge https:// hinzu, wenn es fehlt
+                                url = "https://" + url;
                             }
-                            // Verwende Desktop.browse, um den Standardbrowser zu öffnen
+
                             if (Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) {
                                 Desktop.getDesktop().browse(new URI(url));
                             } else {
-                                // Fallback oder Fehlermeldung, wenn Browser nicht geöffnet werden kann
+
                                 System.err.println("Desktop browse action not supported.");
                                 DialogUtil.showError("Fehler", "Der Link konnte nicht im Browser geöffnet werden (Aktion nicht unterstützt).");
                             }
                         } catch (URISyntaxException | IOException e) {
-                            // Fehler beim Parsen der URL oder Öffnen des Browsers
                             System.err.println("Fehler beim Öffnen des Links '" + url + "': " + e.getMessage());
                             DialogUtil.showError("Fehler", "Ungültiger Link oder Browser konnte nicht geöffnet werden:\n" + url);
                         }
@@ -121,30 +117,30 @@ public class EmployeeDashboardController implements Initializable {
 
             @Override
             protected void updateItem(String item, boolean empty) {
-                super.updateItem(item, empty); // Wichtig: Immer super aufrufen!
+                super.updateItem(item, empty);
 
                 if (empty || item == null || item.trim().isEmpty()) {
                     setText(null);
-                    setGraphic(null); // Keine Grafik anzeigen, wenn leer oder null
+                    setGraphic(null);
                 } else {
-                    link.setText(item); // Setze den Link-Text (die URL selbst)
-                    setGraphic(link);   // Setze den Hyperlink als Inhalt der Zelle
-                    setText(null);      // Kein normaler Text neben dem Hyperlink
+                    link.setText(item);
+                    setGraphic(link);
+                    setText(null);
                 }
             }
         });
 
-        // --- NEU: CellFactory für die Aktionsspalte ---
+
         actionColumn.setCellFactory(col -> new TableCell<RecommendationDTO, Void>() {
             private final Button withdrawButton = new Button("Zurückziehen");
 
-            { // Initialisierungsblock für die Zelle
+            {
                 withdrawButton.setOnAction(event -> {
                     RecommendationDTO recommendation = getTableView().getItems().get(getIndex());
                     handleWithdrawAction(recommendation);
                 });
-                // Optional: Style für den Button
-                withdrawButton.getStyleClass().add("withdraw-button"); // CSS-Klasse hinzufügen
+
+                withdrawButton.getStyleClass().add("withdraw-button");
             }
 
             @Override
@@ -155,19 +151,18 @@ public class EmployeeDashboardController implements Initializable {
                     setGraphic(null);
                 } else {
                     RecommendationDTO recommendation = getTableView().getItems().get(getIndex());
-                    // Zeige Button nur, wenn Status "Eingereicht" ist
-                    // Verwende Konstanten, wenn möglich (hier als String für Einfachheit)
+
                     if ("Eingereicht".equalsIgnoreCase(recommendation.getStatus())) {
                         setGraphic(withdrawButton);
                     } else {
-                        setGraphic(null); // Kein Button für andere Status
+                        setGraphic(null);
                     }
                 }
             }
         });
     }
 
-// --- NEU: Handler für die Zurückziehen-Aktion ---
+
 private void handleWithdrawAction(RecommendationDTO recommendation) {
     String confirmMsg = "Möchten Sie die Empfehlung für '" +
             recommendation.getCandidateFirstname() + " " + recommendation.getCandidateLastname() +
@@ -176,31 +171,24 @@ private void handleWithdrawAction(RecommendationDTO recommendation) {
     boolean confirmed = DialogUtil.showConfirmation("Empfehlung zurückziehen", confirmMsg);
 
     if (confirmed) {
-        // Führe Backend-Aufruf in einem Hintergrundthread aus
+
         new Thread(() -> {
             try {
                 RecommendationDTO updatedDto = backendService.withdrawRecommendation(recommendation.getId());
-                // UI Update im JavaFX Application Thread
+
                 Platform.runLater(() -> {
                     DialogUtil.showInfo("Erfolg", "Empfehlung wurde zurückgezogen.");
-                    loadRecommendations(); // Tabelle neu laden, um Status zu aktualisieren
-                    // Optional: Nur die spezifische Zeile aktualisieren, wenn DTO zurückgegeben wird
-                    // int index = recommendationsTable.getItems().indexOf(recommendation);
-                    // if (index != -1) {
-                    //     recommendationsTable.getItems().set(index, updatedDto);
-                    //     recommendationsTable.refresh(); // Sicherstellen, dass die Zeile neu gezeichnet wird
-                    // } else {
-                    //     loadRecommendations(); // Fallback
-                    // }
+                    loadRecommendations();
+
                 });
             } catch (IOException | InterruptedException | SecurityException | IllegalStateException | IllegalArgumentException e) {
-                // UI Update im JavaFX Application Thread
+
                 Platform.runLater(() -> {
                     DialogUtil.showError("Fehler", "Zurückziehen fehlgeschlagen: " + e.getMessage());
-                    // Optional: Tabelle neu laden, falls der Fehler durch veraltete Daten kam
+
                     loadRecommendations();
                 });
-            } catch (Exception e) { // Generischer Fallback
+            } catch (Exception e) {
                 Platform.runLater(() -> {
                     DialogUtil.showError("Fehler", "Ein unerwarteter Fehler ist aufgetreten: " + e.getMessage());
                     loadRecommendations();
@@ -234,10 +222,10 @@ private <T> void setupColumn(TableColumn<RecommendationDTO, T> column, String pr
 
     @FXML
     private void handleLogout(ActionEvent event) {
-        // Leere die gesamte UserSession, inklusive userId, username UND token
-        UserSession.getInstance().clear(); // <-- ÄNDERUNG HIER
 
-        // Wechsle zurück zur Rollenauswahl
+        UserSession.getInstance().clear();
+
+
         SceneUtil.switchScene(event, "/com/krouna/empfehlungsapp_javafx/role-selection-view.fxml");
     }
 }

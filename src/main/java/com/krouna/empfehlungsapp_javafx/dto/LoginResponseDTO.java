@@ -1,8 +1,8 @@
 package com.krouna.empfehlungsapp_javafx.dto;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties; // Optional, aber nützlich
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
-// Ignoriert unbekannte Felder, falls Backend mehr sendet als Frontend kennt
+
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class LoginResponseDTO {
     private Long id;
@@ -10,10 +10,10 @@ public class LoginResponseDTO {
     private String role;
     private String token;
 
-    // Leerer Konstruktor (wichtig für Jackson)
+
     public LoginResponseDTO() {}
 
-    // Optional: Konstruktor mit Feldern
+
     public LoginResponseDTO(Long id, String username, String role, String token) {
         this.id = id;
         this.username = username;
@@ -21,7 +21,7 @@ public class LoginResponseDTO {
         this.token = token;
     }
 
-    // Getter und Setter für alle Felder
+
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
 

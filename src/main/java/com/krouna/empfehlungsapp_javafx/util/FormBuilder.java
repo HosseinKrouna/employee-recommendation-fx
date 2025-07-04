@@ -7,30 +7,21 @@ import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 
-/**
- * Utility class for dynamically building form elements
- */
+
 public class FormBuilder {
 
     private final VBox container;
     private final ScrollPane scrollPane;
     private final FieldValidators fieldValidators;
 
-    /**
-     * Constructor that takes references to the UI components where dynamic form elements will be added
-     *
-     * @param container The container to add form elements to
-     * @param scrollPane The scroll pane containing the form
-     */
+
     public FormBuilder(VBox container, ScrollPane scrollPane) {
         this.container = container;
         this.scrollPane = scrollPane;
         this.fieldValidators = new FieldValidators();
     }
 
-    /**
-     * Adds a custom skill row to the skills container
-     */
+
     public void addCustomSkill() {
         TextField technologyField = new TextField();
         technologyField.setPromptText("Technologie");
