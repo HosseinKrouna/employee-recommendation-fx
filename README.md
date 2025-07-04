@@ -104,7 +104,7 @@ Follow these steps to set up an HR user in Postman:
 
 ### Documentation
 
-The **documentation** for this project can be found in the **backend repository**.
+[Document](https://github.com/HosseinKrouna/employee-recruits-employees/blob/main/docs/projektdokumentation-do-it-2025-hossein-krouna.pdf)
 
 - **Documentation**: Contains detailed instructions on setting up and using the backend, including API endpoints, configuration, and setup procedures.
 
