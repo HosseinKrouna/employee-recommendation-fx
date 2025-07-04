@@ -41,12 +41,8 @@ To get the application running locally, follow these steps:
    ```
 
 2. **Set Up MariaDB Database**:
-   - Ensure **MariaDB** is installed and running.
-   - Create a database (e.g., `emp_recommendations`).
-   - Run the following SQL script to initialize the schema:
-     ```bash
-     mysql -u root -p < database-scripts/init.sql
-     ```
+   - Ensure **MariaDB** is installed and running
+   - Create a database `mitarbeiter_empfehlungdb`
 
 3. **Clone the Backend Project**:
    - Although the backend project is not necessary to be run separately, it should still be cloned alongside the frontend for the full project setup:
@@ -63,9 +59,6 @@ To get the application running locally, follow these steps:
      ```bash
      mvn javafx:run
      ```
-
-5. **Frontend**:
-   - The JavaFX frontend is automatically launched when the Spring Boot backend starts. You only need to run the frontend project (JavaFX), which will handle starting the backend.
 
 ### Usage
 
@@ -109,12 +102,12 @@ Follow these steps to set up an HR user in Postman:
 - **Employees** can register themselves through the frontend. Once registered, they can log in to submit recommendations.
 - **HR Personnel** (Admins) will have their credentials set via Postman and can log in to manage recommendations, view generated PDFs, and track candidate statuses.
 
-### Documentation and Database Dump
+### Documentation
 
-The **documentation** and the **database dump** for this project can be found in the **backend repository**.
+The **documentation** for this project can be found in the **backend repository**.
 
 - **Documentation**: Contains detailed instructions on setting up and using the backend, including API endpoints, configuration, and setup procedures.
-- **Database Dump**: A dump of the MariaDB database (`emp_recommendations_dump.sql`) is available for quick setup and can be restored using Postman or directly in your MariaDB instance.
+
 
 You can access the backend repository here: [Backend Repository](https://github.com/HosseinKrouna/employee-recruits-employees)
 
@@ -127,24 +120,6 @@ The application documentation is available in the `docs/` directory. It includes
 - **Database Schema**: Information about the database structure and how to initialize it.
 - **Developer Guide**: Instructions for setting up the development environment, extending the application, and contributing.
 
-## Database Dump
-
-For convenience, a database dump (`emp_recommendations_dump.sql`) is available in the `database-dump/` directory. You can use this dump to quickly restore the database to a predefined state.
-
-To restore the database from the dump:
-```bash
-mysql -u root -p < database-dump/emp_recommendations_dump.sql
-```
-
-## Contributing
-
-Contributions are welcome! To contribute to this project:
-
-1. Fork the repository.
-2. Create a new branch (`git checkout -b feature-branch`).
-3. Make your changes and commit them.
-4. Push to your forked repository (`git push origin feature-branch`).
-5. Create a pull request.
 
 ## License
 
